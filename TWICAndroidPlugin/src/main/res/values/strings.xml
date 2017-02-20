@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_sdk_title">SDK error</string>
+    <string name="error_sdk_code_token">Session token is empty</string>
+    <string name="error_sdk_code_1000">API Key is empty</string>
+    <string name="error_sdk_code_1001">API Secret is empty</string>
+    <string name="error_sdk_code_1002">Event Id is empty</string>
+
+    <string name="error_network_title">Network error</string>
+    <string name="error_network_message">Communication error with server</string>
+
+    <string name="error_image_title">Image error</string>
+    <string name="error_image_message">An error occured while processing picture</string>
+
+    <string name="error_avatar_title">Image error</string>
+    <string name="error_avatar_message">A picture is required</string>
+
+    <string name="error_scan_title">Scan Error</string>
+    <string name="error_scan_message">Could not scan</string>
+    <string name="error_scan_message_differ_failed">Could not differ scan</string>
+
+    <string name="progress_title">Loading</string>
+    <string name="progress_message">Please wait...</string>
+
+    <string name="error_title">Error</string>
+
+    <string name="avatars_empty">No avatar available</string>
+
+    <string name="share">Share on...</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

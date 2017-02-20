@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.thestudnet.twicandroidplugin">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light">
+
+        <activity android:name="com.thestudnet.twicandroidplugin.activities.VideoGridActivity"/>
+
+    </application>
+
+</manifest>

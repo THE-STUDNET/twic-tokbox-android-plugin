@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_sdk_title">Erreur SDK</string>
+    <string name="error_sdk_code_token">Le token de session est vide</string>
+    <string name="error_sdk_code_1000">API Key est vide</string>
+    <string name="error_sdk_code_1001">API Secret est vide</string>
+    <string name="error_sdk_code_1002">Event Id est vide</string>
+
+    <string name="error_network_title">Erreur réseau</string>
+    <string name="error_network_message">Erreur de communication avec le serveur</string>
+
+    <string name="error_image_title">Erreur image</string>
+    <string name="error_image_message">Une erreur est survenue pendant le traitement de l\'image !</string>
+
+    <string name="error_avatar_title">Erreur image</string>
+    <string name="error_avatar_message">Il faut envoyer une image !</string>
+
+    <string name="error_scan_title">Erreur scan</string>
+    <string name="error_scan_message">Le scan n\'a pu être validé</string>
+    <string name="error_scan_message_differ_failed">Le scan n\'a pu être différé</string>
+
+    <string name="progress_title">Chargement</string>
+    <string name="progress_message">Merci de patienter...</string>
+
+    <string name="error_title">Erreur</string>
+
+    <string name="avatars_empty">Aucun avatar</string>
+
+    <string name="share">Partager sur...</string>
+</resources>
