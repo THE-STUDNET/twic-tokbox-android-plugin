@@ -1,6 +1,12 @@
 package com.thestudnet.twicandroidplugin;
 
-import android.content.Context;
+import com.google.firebase.database.FirebaseDatabase;
+import com.thestudnet.twicandroidplugin.config.IoSocketConfig;
+
+import java.net.URISyntaxException;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 /**
  * INTERACTIVE LAYER
@@ -9,14 +15,40 @@ import android.content.Context;
 
 public class TWICAndroidPlugin {
 
-    private static Context mAppContext;
-
-    public void setAppContext(Context context) {
-        mAppContext = context;
+    private FirebaseDatabase firebaseDatabase;
+    public FirebaseDatabase getFirebaseDatabase() {
+        return firebaseDatabase;
+    }
+    public void setFirebaseDatabase(FirebaseDatabase firebaseDatabase) {
+        this.firebaseDatabase = firebaseDatabase;
     }
 
-    public Context getAppContext() {
-        return mAppContext;
+    private Socket ioSocket;
+    public Socket getIoSocket() {
+        return ioSocket;
+    }
+    public void setIoSocket(Socket ioSocket) {
+        this.ioSocket = ioSocket;
+    }
+
+    private static TWICAndroidPlugin instance;
+    public TWICAndroidPlugin() {
+    }
+    public static TWICAndroidPlugin getInstance() {
+        if(instance == null) {
+            TWICAndroidPlugin minstance = new TWICAndroidPlugin();
+            instance = minstance;
+            instance.firebaseDatabase = FirebaseDatabase.getInstance();
+            try {
+                instance.ioSocket = IO.socket(IoSocketConfig.SERVER_URL);
+            }
+            catch (URISyntaxException error) {
+
+            }
+            return instance;
+        } else {
+            return instance;
+        }
     }
 
 }

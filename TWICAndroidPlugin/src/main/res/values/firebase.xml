@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_app_id" translatable="false">1:1027767631440:android:9d6ada93489cc9b8</string>
+    <string name="gcm_defaultSenderId" translatable="false">1027767631440</string>
+    <string name="default_web_client_id" translatable="false">1027767631440-qo75t6ch8n8qapbqa6dc08o1f4nf1888.apps.googleusercontent.com</string>
+    <string name="ga_trackingId" translatable="false"></string>
+    <string name="firebase_database_url" translatable="false">https://twicapp-c6710.firebaseio.com</string>
+    <string name="google_api_key" translatable="false">AIzaSyBO8FabigZLNjjb0SHbs-hiOkvba8pHLcw</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBO8FabigZLNjjb0SHbs-hiOkvba8pHLcw</string>
+</resources>
