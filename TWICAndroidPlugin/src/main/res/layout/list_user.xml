@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerVertical="true"
+    android:layout_gravity="center_vertical"
+    android:background="@android:color/transparent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/list_margin_large">
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="@dimen/avatar"
+        android:layout_height="@dimen/avatar"
+        android:layout_centerVertical="true"
+        android:scaleType="fitCenter"
+        android:src="@color/avatar_border"
+        app:riv_border_color="@color/avatar_border"
+        app:riv_border_width="2dip"
+        app:riv_corner_radius="30dip"
+        app:riv_mutate_background="true"
+        app:riv_oval="true"
+        app:riv_tile_mode="repeat" />
+
+    <me.grantland.widget.AutofitTextView
+        android:id="@+id/user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/element_margin_large"
+        android:layout_toRightOf="@+id/user_avatar"
+        android:textColor="@color/text_white"
+        android:textSize="@dimen/text_medium"
+        app:layout_widthPercent="40%" />
+
+    <ImageView
+        android:id="@+id/sharing_mic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/element_margin_large"
+        android:layout_toRightOf="@+id/user_name"
+        android:src="@drawable/sharing_mic" />
+
+    <ImageView
+        android:id="@+id/sharing_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/element_margin_large"
+        android:layout_toRightOf="@+id/sharing_mic"
+        android:src="@drawable/sharing_screen" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/expandablelistview_indicator"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/expandablelistview_indicator" />
+
+</android.support.percent.PercentRelativeLayout>

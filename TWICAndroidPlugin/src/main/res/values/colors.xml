@@ -9,6 +9,17 @@
     <color name="text_white">#ffffff</color>
     <color name="text_dark">#000000</color>
     <color name="text_medium">#606060</color>
+    <color name="text_hint">#A09F9E</color>
+    <color name="text_grey">#444444</color>
 
     <color name="background_dark">#444444</color>
+    <color name="background_users">#373B44</color>
+    <color name="background_white">#ffffff</color>
+
+    <color name="separator">#484C56</color>
+
+    <color name="avatar_border">#ffffff</color>
+
+    <color name="action_red">#E05656</color>
+    <color name="action_green">#54B55A</color>
 </resources>

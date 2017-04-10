@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.R2;
 import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
 import com.thestudnet.twicandroidplugin.config.IoSocketConfig;
 import com.thestudnet.twicandroidplugin.config.OpenTokConfig;
@@ -33,6 +36,8 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -54,7 +59,8 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
     private Subscriber mSubscriber;
 
     private RelativeLayout mPublisherViewContainer;
-    private LinearLayout mSubscriberViewContainer;
+    private RelativeLayout mSubscriberViewContainer;
+    private AlertDialog userDialog;
 
     /**
      * Returns a new instance of this fragment
@@ -73,7 +79,11 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_video_grid, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_video_grid, container, false);
+
+        ButterKnife.bind(this, rootView);
+
+        return rootView;
     }
 
     @Override
@@ -81,11 +91,59 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
         super.onViewCreated(view, savedInstanceState);
 
         mPublisherViewContainer = (RelativeLayout) view.findViewById(R.id.publisherview);
-        mSubscriberViewContainer = (LinearLayout) view.findViewById(R.id.subscriberview);
+        mSubscriberViewContainer = (RelativeLayout) view.findViewById(R.id.subscriberview);
 
         this.registerIoSocket();
 
         this.requestPermissions();
+
+        this.buildUserDialog();
+    }
+
+    private void buildUserDialog() {
+        LayoutInflater factory = LayoutInflater.from(this.getContext());
+        View userDialogView = factory.inflate(R.layout.popup_user, null);
+        this.userDialog = new AlertDialog.Builder(this.getContext()).create();
+        this.userDialog.setView(userDialogView);
+        userDialogView.findViewById(R.id.user_action_mic).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //your business logic
+                userDialog.dismiss();
+            }
+        });
+        userDialogView.findViewById(R.id.user_action_camera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userDialog.dismiss();
+            }
+        });
+        userDialogView.findViewById(R.id.user_action_rotate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userDialog.dismiss();
+            }
+        });
+        userDialogView.findViewById(R.id.user_action_stop).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userDialog.dismiss();
+            }
+        });
+    }
+
+    @OnClick(R2.id.publisherview) void onPublisherviewClicked() {
+        this.userDialog.show();
+        Window window = this.userDialog.getWindow();
+        window.setLayout(this.getContext().getResources().getDimensionPixelSize(R.dimen.popup_all), WindowManager.LayoutParams.WRAP_CONTENT);
+    }
+
+    @OnClick(R2.id.subscriberview) void onSubscriberviewClicked() {
+        this.getActivity().getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.push_left_in, R.anim.push_left_out, R.anim.push_right_in, R.anim.push_right_out)
+                .replace(R.id.container, VideoDetailFragment.newInstance())
+                .addToBackStack(null)
+                .commit();
     }
     
     private void registerIoSocket() {
@@ -254,7 +312,7 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
         if (EasyPermissions.hasPermissions(this.getContext(), perms)) {
             mSession = new Session(this.getContext(), OpenTokConfig.API_KEY, OpenTokConfig.SESSION_ID);
             mSession.setSessionListener(this);
-            mSession.connect(OpenTokConfig.TOKEN);
+            mSession.connect(OpenTokConfig.TOKEN_2);
         } else {
             EasyPermissions.requestPermissions(this, getString(R.string.rationale_video_app), RC_VIDEO_APP_PERM, perms);
         }

@@ -34,4 +34,22 @@
     <string name="setting">Settings</string>
     <string name="cancel">Cancel</string>
     <string name="buttonText">Click to begin please</string>
+
+    <string name="chat_hint">Type your message...</string>
+
+    <string name="fragment_users_title">%1$s Members</string>
+    <string name="action_request_camera">Send a request for the Camera</string>
+    <string name="action_request_mic">Send a request for the Microphone</string>
+    <string name="action_request_screen">Send a request for the Screen Sharing</string>
+    <string name="action_request_kick">Kick %1$s from the live</string>
+
+    <string name="user_action_mic">Microphone</string>
+    <string name="user_action_mic_2">Turn Off</string>
+    <string name="user_action_cam">Camera</string>
+    <string name="user_action_cam_2">Turn On</string>
+    <string name="user_action_rotate">Rotate</string>
+    <string name="user_action_rotate_2">Front Camera</string>
+    <string name="user_action_stop">Stop</string>
+    <string name="user_action_stop_2">Your Stream</string>
+
 </resources>

@@ -2,4 +2,25 @@
 <resources>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="activity_content_margin">10dp</dimen>
+    <dimen name="list_margin">10dp</dimen>
+    <dimen name="list_margin_large">15dp</dimen>
+
+    <dimen name="text_small">14sp</dimen>
+    <dimen name="text_medium">18sp</dimen>
+
+    <dimen name="element_margin">10dp</dimen>
+    <dimen name="element_margin_large">10dp</dimen>
+    <dimen name="element_min_width">40dp</dimen>
+    <dimen name="element_min_height">40dp</dimen>
+
+    <dimen name="avatar">50dp</dimen>
+    <dimen name="user_action">30dp</dimen>
+
+    <dimen name="publisherview_width">150dp</dimen>
+    <dimen name="publisherview_height">200dp</dimen>
+
+    <dimen name="popup_square">120dp</dimen>
+    <dimen name="popup_all">400dp</dimen>
 </resources>
