@@ -23,7 +23,7 @@ public class DeviceUuidFactory {
         if( uuid ==null ) {
             synchronized (DeviceUuidFactory.class) {
                 if( uuid == null) {
-                    final SharedPreferences prefs = context.getSharedPreferences( PREFS_FILE, 0);
+                    final SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, 0);
                     final String id = prefs.getString(PREFS_DEVICE_ID, null );
 
                     if (id != null) {

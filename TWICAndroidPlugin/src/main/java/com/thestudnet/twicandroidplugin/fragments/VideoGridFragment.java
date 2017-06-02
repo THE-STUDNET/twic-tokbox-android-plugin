@@ -1,66 +1,56 @@
 package com.thestudnet.twicandroidplugin.fragments;
 
-import android.Manifest;
+import android.content.ContentValues;
+import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
+import android.widget.GridView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
-import com.opentok.android.BaseVideoRenderer;
-import com.opentok.android.OpentokError;
 import com.opentok.android.Publisher;
-import com.opentok.android.PublisherKit;
-import com.opentok.android.Session;
-import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
-import com.opentok.android.SubscriberKit;
+import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
-import com.thestudnet.twicandroidplugin.R2;
-import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
-import com.thestudnet.twicandroidplugin.config.IoSocketConfig;
-import com.thestudnet.twicandroidplugin.config.OpenTokConfig;
+import com.thestudnet.twicandroidplugin.adapters.StreamsAdapter;
+import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
+import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
-import com.thestudnet.twicandroidplugin.utils.DeviceUuidFactory;
+import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
+import com.thestudnet.twicandroidplugin.models.GenericModel;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.List;
-
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-import pub.devrel.easypermissions.AfterPermissionGranted;
-import pub.devrel.easypermissions.AppSettingsDialog;
-import pub.devrel.easypermissions.EasyPermissions;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class VideoGridFragment extends CustomFragment implements EasyPermissions.PermissionCallbacks, Session.SessionListener, Publisher.PublisherListener, Subscriber.VideoListener, Emitter.Listener {
+public class VideoGridFragment extends CustomFragment implements View.OnClickListener {
 
-    private static final String TAG = "com.thestudnet.twicandroidplugin " + VideoGridFragment.class.getSimpleName();
+    private static final String TAG = "com.thestudnet.twicandroidplugin." + VideoGridFragment.class.getSimpleName();
 
     private static final int RC_SETTINGS_SCREEN_PERM = 123;
     private static final int RC_VIDEO_APP_PERM = 124;
 
-    private Session mSession;
-    private Publisher mPublisher;
-    private Subscriber mSubscriber;
+    private GridView gridview;
 
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberViewContainer;
-    private AlertDialog userDialog;
+
+    private AtomicInteger currentStreams;
+    private StreamsAdapter streamsAdapter;
+
+    private ConstraintLayout mContainer;
+    private AtomicInteger subscribers;
+    private Publisher mPublisher;
+
+    boolean canpublish = false;
 
     /**
      * Returns a new instance of this fragment
@@ -72,6 +62,7 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
 
     public VideoGridFragment() {
         // Required empty public constructor
+        this.currentStreams = new AtomicInteger();
     }
 
 
@@ -81,7 +72,13 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_video_grid, container, false);
 
-        ButterKnife.bind(this, rootView);
+        this.canpublish = true;
+
+        this.subscribers = new AtomicInteger(0);
+
+//        this.gridview = (GridView) rootView.findViewById(R.id.gridview);
+
+//        ButterKnife.bind(this, rootView);
 
         return rootView;
     }
@@ -93,336 +90,356 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
         mPublisherViewContainer = (RelativeLayout) view.findViewById(R.id.publisherview);
         mSubscriberViewContainer = (RelativeLayout) view.findViewById(R.id.subscriberview);
 
-        this.registerIoSocket();
+        mContainer = (ConstraintLayout) view.findViewById(R.id.main_container);
 
-        this.requestPermissions();
-
-        this.buildUserDialog();
-    }
-
-    private void buildUserDialog() {
-        LayoutInflater factory = LayoutInflater.from(this.getContext());
-        View userDialogView = factory.inflate(R.layout.popup_user, null);
-        this.userDialog = new AlertDialog.Builder(this.getContext()).create();
-        this.userDialog.setView(userDialogView);
-        userDialogView.findViewById(R.id.user_action_mic).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //your business logic
-                userDialog.dismiss();
+        if(TokBoxClient.getInstance().getPublisher() != null) {
+            mPublisher = TokBoxClient.getInstance().getPublisher();
+            mPublisher.getView().setId(R.id.publisher_view_id);
+            // Remove parent view
+            ViewGroup publisherParent = (ViewGroup) mPublisher.getView().getParent();
+            if(publisherParent != null) {
+                publisherParent.removeView(mPublisher.getView());
             }
-        });
-        userDialogView.findViewById(R.id.user_action_camera).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userDialog.dismiss();
-            }
-        });
-        userDialogView.findViewById(R.id.user_action_rotate).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userDialog.dismiss();
-            }
-        });
-        userDialogView.findViewById(R.id.user_action_stop).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userDialog.dismiss();
-            }
-        });
-    }
-
-    @OnClick(R2.id.publisherview) void onPublisherviewClicked() {
-        this.userDialog.show();
-        Window window = this.userDialog.getWindow();
-        window.setLayout(this.getContext().getResources().getDimensionPixelSize(R.dimen.popup_all), WindowManager.LayoutParams.WRAP_CONTENT);
-    }
-
-    @OnClick(R2.id.subscriberview) void onSubscriberviewClicked() {
-        this.getActivity().getSupportFragmentManager().beginTransaction()
-                .setCustomAnimations(R.anim.push_left_in, R.anim.push_left_out, R.anim.push_right_in, R.anim.push_right_out)
-                .replace(R.id.container, VideoDetailFragment.newInstance())
-                .addToBackStack(null)
-                .commit();
-    }
-    
-    private void registerIoSocket() {
-        TWICAndroidPlugin.getInstance().getIoSocket().on(Socket.EVENT_CONNECT, onConnect);
-        TWICAndroidPlugin.getInstance().getIoSocket().on(Socket.EVENT_DISCONNECT, onDisconnect);
-        TWICAndroidPlugin.getInstance().getIoSocket().on(Socket.EVENT_CONNECT_ERROR, onConnectError);
-        TWICAndroidPlugin.getInstance().getIoSocket().on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
-        TWICAndroidPlugin.getInstance().getIoSocket().on("authenticated", onAuthenticated);
-        TWICAndroidPlugin.getInstance().getIoSocket().on("ch.message", onMessage);
-        TWICAndroidPlugin.getInstance().getIoSocket().connect();
-    }
-    
-    private void unregisterIoSocket() {
-        TWICAndroidPlugin.getInstance().getIoSocket().disconnect();
-        TWICAndroidPlugin.getInstance().getIoSocket().off(Socket.EVENT_CONNECT, onConnect);
-        TWICAndroidPlugin.getInstance().getIoSocket().off(Socket.EVENT_DISCONNECT, onDisconnect);
-        TWICAndroidPlugin.getInstance().getIoSocket().off(Socket.EVENT_CONNECT_ERROR, onConnectError);
-        TWICAndroidPlugin.getInstance().getIoSocket().off(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
-        TWICAndroidPlugin.getInstance().getIoSocket().off("authenticated", onAuthenticated);
-        TWICAndroidPlugin.getInstance().getIoSocket().off("ch.message", onMessage);
-    }
-
-    private void subscribeToStream(Stream stream) {
-        mSubscriber = new Subscriber(this.getContext(), stream);
-        mSubscriber.setVideoListener(this);
-        mSession.subscribe(mSubscriber);
-    }
-
-    private void disconnectSession() {
-        if (mSession == null) {
-            return;
+            mContainer.addView(mPublisher.getView());
+            mPublisher.getView().setOnClickListener(this);
         }
 
-        if (mSubscriber != null) {
-            mSubscriberViewContainer.removeView(mSubscriber.getView());
-            mSession.unsubscribe(mSubscriber);
-            mSubscriber.destroy();
-            mSubscriber = null;
+        Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+        while (iterator.hasNext()) {
+            Subscriber subscriber = iterator.next();
+            subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+            ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+            if(subscriberParent != null) {
+                subscriberParent.removeView(subscriber.getView());
+            }
+            mContainer.addView(subscriber.getView());
+            subscriber.getView().setOnClickListener(this);
         }
 
-        if (mPublisher != null) {
-            mPublisherViewContainer.removeView(mPublisher.getView());
-            mSession.unpublish(mPublisher);
-            mPublisher.destroy();
+        calculateLayout();
+
+        /*
+        this.streamsAdapter = new StreamsAdapter(this.getContext());
+        this.gridview.setAdapter(streamsAdapter);
+        streamsAdapter.reload();
+        */
+
+        /*
+
+        if(TokBoxClient.getInstance().getPublisher() != null && TokBoxClient.getInstance().getPublisher().getView() != null) {
+            mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView());
+        }
+
+        if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0) {
+            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            while (iterator.hasNext()) {
+                Subscriber subscriber = iterator.next();
+                mSubscriberViewContainer.addView(subscriber.getView());
+                break;
+            }
+        }
+        */
+    }
+
+//    @OnClick(R2.id.publisherview) void onPublisherviewClicked() {
+//        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, null);
+//        /*
+//        this.userDialog.show();
+//        Window window = this.userDialog.getWindow();
+//        window.setLayout(this.getContext().getResources().getDimensionPixelSize(R.dimen.popup_all), WindowManager.LayoutParams.WRAP_CONTENT);
+//        */
+//    }
+//
+//    @OnClick(R2.id.subscriberview) void onSubscriberviewClicked() {
+//        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_VIDEO_DETAILS_FRAGMENT, null);
+//        /*
+//        this.getActivity().getSupportFragmentManager().beginTransaction()
+//                .setCustomAnimations(R.anim.push_left_in, R.anim.push_left_out, R.anim.push_right_in, R.anim.push_right_out)
+//                .replace(R.id.container, VideoDetailFragmentOld.newInstance())
+//                .addToBackStack(null)
+//                .commit();
+//                */
+//    }
+
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        if(id == R.id.publisher_view_id) {
+            FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, null);
+        }
+        else {
+
+            view.setOnClickListener(null);
+            /*
+            if (Arrays.asList(getResources().getIntArray(R.array.subscriber_view_ids)).contains(id)) {
+                // found a match
+                ArrayList<GenericModel> list = new ArrayList<>(1);
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("", "");
+                list.add(new GenericModel(contentValues));
+                FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, list);
+            }
+            */
+            ArrayList<GenericModel> list = new ArrayList<>(1);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("stream_id", (String) view.getTag());
+            list.add(new GenericModel(contentValues));
+            FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_VIDEO_DETAILS_FRAGMENT, list);
+        }
+    }
+
+    @Subscribe
+    public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
+        if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_ADDED) {
+            Log.d(TAG, "ON_SUBSCRIBER_ADDED");
+
+//            streamsAdapter.reload();
+            /*
+            this.currentStreams.getAndAdd(1);
+
+            if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0) {
+                Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+                while (iterator.hasNext()) {
+                    Subscriber subscriber = iterator.next();
+                    mSubscriberViewContainer.addView(subscriber.getView());
+                    break;
+                }
+            }
+            */
+
+            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                Subscriber subscriber = iterator.next();
+                if(this.subscribers.get() == i) {
+                    subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                    // Remove parent view
+                    ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                    if(subscriberParent != null) {
+                        subscriberParent.removeView(subscriber.getView());
+                    }
+                    mContainer.addView(subscriber.getView());
+                    subscriber.getView().setOnClickListener(this);
+                    break;
+                }
+                i++;
+            }
+
+            calculateLayout();
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) {
+            Log.d(TAG, "ON_PUBLISHER_ADDED");
+
+//            streamsAdapter.reload();
+
+            /*
+
+            this.currentStreams.getAndAdd(1);
+
+            mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView());
+            */
+
+            if(mPublisher == null) {
+                mPublisher = TokBoxClient.getInstance().getPublisher();
+                mPublisher.getView().setId(R.id.publisher_view_id);
+                // Remove parent view
+                ViewGroup publisherParent = (ViewGroup) mPublisher.getView().getParent();
+                if(publisherParent != null) {
+                    publisherParent.removeView(mPublisher.getView());
+                }
+                mContainer.addView(mPublisher.getView());
+                mPublisher.getView().setOnClickListener(this);
+                calculateLayout();
+            }
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED) {
+            mContainer.removeAllViews();
+            this.subscribers.set(0);
+
+            if(TokBoxClient.getInstance().getPublisher() != null) {
+                mPublisher = TokBoxClient.getInstance().getPublisher();
+                mPublisher.getView().setId(R.id.publisher_view_id);
+                // Remove parent view
+                ViewGroup publisherParent = (ViewGroup) mPublisher.getView().getParent();
+                if(publisherParent != null) {
+                    publisherParent.removeView(mPublisher.getView());
+                }
+                mContainer.addView(mPublisher.getView());
+                mPublisher.getView().setOnClickListener(this);
+            }
+
+            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            while (iterator.hasNext()) {
+                Subscriber subscriber = iterator.next();
+                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                if(subscriberParent != null) {
+                    subscriberParent.removeView(subscriber.getView());
+                }
+                mContainer.addView(subscriber.getView());
+                subscriber.getView().setOnClickListener(this);
+            }
+
+            calculateLayout();
+
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) {
+            mContainer.removeAllViews();
             mPublisher = null;
+
+            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            while (iterator.hasNext()) {
+                Subscriber subscriber = iterator.next();
+                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                if(subscriberParent != null) {
+                    subscriberParent.removeView(subscriber.getView());
+                }
+                mContainer.addView(subscriber.getView());
+                subscriber.getView().setOnClickListener(this);
+            }
+
+            calculateLayout();
         }
-        mSession.disconnect();
     }
 
-    @Override
-    public void onConnected(Session session) {
-        Log.d(TAG, "onConnected: Connected to session " + session.getSessionId());
-
-        mPublisher = new Publisher(this.getContext(), "publisher");
-
-        mPublisher.setPublisherListener(this);
-        mPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
-
-        mPublisherViewContainer.addView(mPublisher.getView());
-
-        mSession.publish(mPublisher);
+    private int getResIdForSubscriberIndex(int index) {
+        TypedArray arr = getResources().obtainTypedArray(R.array.subscriber_view_ids);
+        int subId = arr.getResourceId(index, 0);
+        arr.recycle();
+        return subId;
     }
 
-    @Override
-    public void onDisconnected(Session session) {
-        Log.d(TAG, "onDisconnected: disconnected from session " + session.getSessionId());
+    private void calculateLayout() {
+        ConstraintSetHelper set = new ConstraintSetHelper(R.id.main_container);
 
-        mSession = null;
-    }
+        int size = this.subscribers.get();
 
-    @Override
-    public void onError(Session session, OpentokError opentokError) {
-        Log.d(TAG, "onError: Error (" + opentokError.getMessage() + ") in session " + session.getSessionId());
-
-        Toast.makeText(this.getContext(), "Session error. See the logcat please.", Toast.LENGTH_LONG).show();
-        this.getActivity().finish();
-    }
-
-    @Override
-    public void onStreamReceived(Session session, Stream stream) {
-        Log.d(TAG, "onStreamReceived: New stream " + stream.getStreamId() + " in session " + session.getSessionId());
-
-        if (OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
-        }
-        if (mSubscriber != null) {
+        if(size > 10) {
             return;
         }
 
-        subscribeToStream(stream);
-    }
+        if(TokBoxClient.getInstance().getPublisher() != null && this.canpublish) { // TODO and user has right to publish
+            if (size == 0) {
+                // Publisher full screen
+                set.layoutViewFullScreen(R.id.publisher_view_id);
+            }
+            else if (size == 1) {
+                // Publisher
+                // Subscriber
+                set.layoutViewAboveView(R.id.publisher_view_id, getResIdForSubscriberIndex(0));
+                set.layoutViewWithTopBound(R.id.publisher_view_id, R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewAllContainerWide(R.id.publisher_view_id, R.id.main_container);
+                set.layoutViewAllContainerWide(getResIdForSubscriberIndex(0), R.id.main_container);
 
-    @Override
-    public void onStreamDropped(Session session, Stream stream) {
-        Log.d(TAG, "onStreamDropped: Stream " + stream.getStreamId() + " dropped from session " + session.getSessionId());
+            }
+            else if (size > 1 && size % 2 == 0) {
+                //  Publisher
+                // Sub1 | Sub2
+                // Sub3 | Sub4
+                //    .....
+                set.layoutViewWithTopBound(R.id.publisher_view_id, R.id.main_container);
+                set.layoutViewAllContainerWide(R.id.publisher_view_id, R.id.main_container);
 
-        if (OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
-        }
-        if (mSubscriber == null) {
-            return;
-        }
-
-        if (mSubscriber.getStream().equals(stream)) {
-            mSubscriberViewContainer.removeView(mSubscriber.getView());
-            mSubscriber.destroy();
-            mSubscriber = null;
-        }
-    }
-
-    @Override
-    public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
-        Log.d(TAG, "onStreamCreated: Own stream " + stream.getStreamId() + " created");
-
-        if (!OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
-        }
-
-        subscribeToStream(stream);
-    }
-
-    @Override
-    public void onStreamDestroyed(PublisherKit publisherKit, Stream stream) {
-        Log.d(TAG, "onStreamDestroyed: Own stream " + stream.getStreamId() + " destroyed");
-    }
-
-    @Override
-    public void onError(PublisherKit publisherKit, OpentokError opentokError) {
-        Log.d(TAG, "onError: Error (" + opentokError.getMessage() + ") in publisher");
-
-        Toast.makeText(this.getContext(), "Session error. See the logcat please.", Toast.LENGTH_LONG).show();
-        this.getActivity().finish();
-    }
-
-    @Override
-    public void onVideoDataReceived(SubscriberKit subscriberKit) {
-        if(mSubscriber != null) {
-            mSubscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
-            mSubscriberViewContainer.addView(mSubscriber.getView());
-        }
-    }
-
-    @Override
-    public void onVideoDisabled(SubscriberKit subscriberKit, String s) {
-
-    }
-
-    @Override
-    public void onVideoEnabled(SubscriberKit subscriberKit, String s) {
-
-    }
-
-    @Override
-    public void onVideoDisableWarning(SubscriberKit subscriberKit) {
-
-    }
-
-    @Override
-    public void onVideoDisableWarningLifted(SubscriberKit subscriberKit) {
-
-    }
-
-    @AfterPermissionGranted(RC_VIDEO_APP_PERM)
-    private void requestPermissions() {
-        String[] perms = { Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO };
-        if (EasyPermissions.hasPermissions(this.getContext(), perms)) {
-            mSession = new Session(this.getContext(), OpenTokConfig.API_KEY, OpenTokConfig.SESSION_ID);
-            mSession.setSessionListener(this);
-            mSession.connect(OpenTokConfig.TOKEN_2);
-        } else {
-            EasyPermissions.requestPermissions(this, getString(R.string.rationale_video_app), RC_VIDEO_APP_PERM, perms);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
-    }
-
-    @Override
-    public void onPermissionsGranted(int requestCode, List<String> perms) {
-        Log.d(TAG, "onPermissionsGranted:" + requestCode + ":" + perms.size());
-    }
-
-    @Override
-    public void onPermissionsDenied(int requestCode, List<String> perms) {
-        Log.d(TAG, "onPermissionsDenied:" + requestCode + ":" + perms.size());
-
-        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            new AppSettingsDialog.Builder(this, getString(R.string.rationale_ask_again))
-                    .setTitle(getString(R.string.title_settings_dialog))
-                    .setPositiveButton(getString(R.string.setting))
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .setRequestCode(RC_SETTINGS_SCREEN_PERM)
-                    .build()
-                    .show();
-        }
-    }
-
-    @Override
-    public void call(Object... args) {
-
-    }
-
-    /************* IO SOCKET PART **************/
-
-    private Emitter.Listener onConnect = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "IOSOCKET : CONNECTED");
-                    try {
-                        JSONObject params = new JSONObject();
-                        params.put("id", 1);
-                        params.put("authentification", IoSocketConfig.AUTH_TOKEN);
-                        params.put("connection_token", new DeviceUuidFactory(getActivity()).getDeviceUuid().toString());
-                        TWICAndroidPlugin.getInstance().getIoSocket().emit("authentify", params);
+                for (int i = 0; i < size; i += 2) {
+                    if (i == 0) {
+                        set.layoutViewAboveView(R.id.publisher_view_id, getResIdForSubscriberIndex(i));
+                        set.layoutViewAboveView(R.id.publisher_view_id, getResIdForSubscriberIndex(i + 1));
+                    } else {
+                        set.layoutViewAboveView(getResIdForSubscriberIndex(i - 2), getResIdForSubscriberIndex(i));
+                        set.layoutViewAboveView(getResIdForSubscriberIndex(i - 1), getResIdForSubscriberIndex(i + 1));
                     }
-                    catch (JSONException error) {
-                        Log.d(TAG, "IOSOCKET CONNECT : JSONException");
+
+                    set.layoutTwoViewsOccupyingAllRow(getResIdForSubscriberIndex(i), getResIdForSubscriberIndex(i + 1));
+                }
+
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 2), R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 1), R.id.main_container);
+            }
+            else if (size > 1) {
+                // Pub  | Sub1
+                // Sub2 | Sub3
+                // Sub3 | Sub4
+                //    .....
+
+                set.layoutViewWithTopBound(R.id.publisher_view_id, R.id.main_container);
+                set.layoutViewWithTopBound(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutTwoViewsOccupyingAllRow(R.id.publisher_view_id, getResIdForSubscriberIndex(0));
+
+                for (int i = 1; i < size; i += 2) {
+                    if (i == 1) {
+                        set.layoutViewAboveView(R.id.publisher_view_id, getResIdForSubscriberIndex(i));
+                        set.layoutViewAboveView(getResIdForSubscriberIndex(0), getResIdForSubscriberIndex(i + 1));
+                    } else {
+                        set.layoutViewAboveView(getResIdForSubscriberIndex(i - 2), getResIdForSubscriberIndex(i));
+                        set.layoutViewAboveView(getResIdForSubscriberIndex(i - 1), getResIdForSubscriberIndex(i + 1));
                     }
+                    set.layoutTwoViewsOccupyingAllRow(getResIdForSubscriberIndex(i), getResIdForSubscriberIndex(i + 1));
                 }
-            });
-        }
-    };
 
-    private Emitter.Listener onDisconnect = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "IOSOCKET : DISCONNECTED");
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 2), R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 1), R.id.main_container);
+            }
+        }
+        else {
+            if (size == 1) {
+                // 1st subscriber full screen
+                set.layoutViewFullScreen(getResIdForSubscriberIndex(0));
+            }
+            else if (size == 2) {
+                // Sub1
+                // Sub2
+                set.layoutViewAboveView(getResIdForSubscriberIndex(0), getResIdForSubscriberIndex(1));
+                set.layoutViewWithTopBound(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(1), R.id.main_container);
+                set.layoutViewAllContainerWide(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewAllContainerWide(getResIdForSubscriberIndex(1), R.id.main_container);
+            }
+            else if (size > 2 && size % 2 != 0) {
+                //  Sub1
+                // Sub2 | Sub3
+                // Sub4 | Sub5
+                //    .....
+                set.layoutViewWithTopBound(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewAllContainerWide(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewAboveView(getResIdForSubscriberIndex(0), getResIdForSubscriberIndex(1));
+                set.layoutViewAboveView(getResIdForSubscriberIndex(0), getResIdForSubscriberIndex(2));
+
+                for (int i = 2; i < size; i += 2) {
+                    set.layoutViewAboveView(getResIdForSubscriberIndex(i - 1), getResIdForSubscriberIndex(i + 1));
+                    set.layoutViewAboveView(getResIdForSubscriberIndex(i), getResIdForSubscriberIndex(i + 2));
+
+                    set.layoutTwoViewsOccupyingAllRow(getResIdForSubscriberIndex(i - 1), getResIdForSubscriberIndex(i));
                 }
-            });
-        }
-    };
 
-    private Emitter.Listener onConnectError = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "IOSOCKET : CONNECT ERROR");
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 2), R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 1), R.id.main_container);
+            }
+            else if (size > 2) {
+                // Sub1 | Sub2
+                // Sub3 | Sub4
+                // Sub5 | Sub6
+                //    .....
+
+                set.layoutViewWithTopBound(getResIdForSubscriberIndex(0), R.id.main_container);
+                set.layoutViewWithTopBound(getResIdForSubscriberIndex(1), R.id.main_container);
+
+                for (int i = 2; i <= size; i += 2) {
+                    set.layoutViewAboveView(getResIdForSubscriberIndex(i - 2), getResIdForSubscriberIndex(i));
+                    set.layoutViewAboveView(getResIdForSubscriberIndex(i - 1), getResIdForSubscriberIndex(i + 1));
+
+                    set.layoutTwoViewsOccupyingAllRow(getResIdForSubscriberIndex(i - 2), getResIdForSubscriberIndex(i - 1));
                 }
-            });
-        }
-    };
 
-    private Emitter.Listener onAuthenticated = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "IOSOCKET : AUTHENTICATED");
-                }
-            });
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 2), R.id.main_container);
+                set.layoutViewWithBottomBound(getResIdForSubscriberIndex(size - 1), R.id.main_container);
+            }
         }
-    };
 
-    private Emitter.Listener onMessage = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "IOSOCKET : MESSAGE " + args.toString());
-                }
-            });
-        }
-    };
-
-    /************* END IO SOCKET PART **************/
+        set.applyToLayout(mContainer, true);
+    }
 
     @Override
     public void onStart() {
@@ -437,10 +454,12 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
 
         super.onResume();
 
-        if (mSession == null) {
-            return;
-        }
-        mSession.onResume();
+        //TokBoxClient.getInstance().resumeSession();
+
+//        if (mSession == null) {
+//            return;
+//        }
+//        mSession.onResume();
     }
 
     @Override
@@ -449,10 +468,12 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
 
         super.onPause();
 
-        if (mSession == null) {
-            return;
-        }
-        mSession.onPause();
+        //TokBoxClient.getInstance().pauseSession();
+
+//        if (mSession == null) {
+//            return;
+//        }
+//        mSession.onPause();
     }
 
     @Override
@@ -466,9 +487,9 @@ public class VideoGridFragment extends CustomFragment implements EasyPermissions
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
 
-        unregisterIoSocket();
+//        unregisterIoSocket();
 
-        disconnectSession();
+//        disconnectSession();
 
         super.onDestroy();
     }

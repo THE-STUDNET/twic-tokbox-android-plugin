@@ -1,6 +1,7 @@
 package com.thestudnet.twicandroidplugin.events;
 
 import com.squareup.otto.Bus;
+import com.squareup.otto.ThreadEnforcer;
 
 /**
  * INTERACTIVE LAYER
@@ -12,7 +13,7 @@ public class EventBus {
 
     public static Bus getInstance() {
         if(instance == null) {
-            Bus bus = new Bus();
+            Bus bus = new Bus(ThreadEnforcer.ANY);
             instance = bus;
             return instance;
         }

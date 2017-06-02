@@ -1,12 +1,20 @@
 package com.thestudnet.twicandroidplugin;
 
-import com.google.firebase.database.FirebaseDatabase;
-import com.thestudnet.twicandroidplugin.config.IoSocketConfig;
+import android.content.Context;
+import android.util.Log;
 
-import java.net.URISyntaxException;
+import com.opentok.android.Subscriber;
+import com.squareup.otto.Subscribe;
+import com.thestudnet.twicandroidplugin.events.APIInteraction;
+import com.thestudnet.twicandroidplugin.events.EventBus;
+import com.thestudnet.twicandroidplugin.events.PluginInteraction;
+import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
+import com.thestudnet.twicandroidplugin.managers.APIClient;
+import com.thestudnet.twicandroidplugin.managers.SettingsManager;
+import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
+import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
+import java.util.Iterator;
 
 /**
  * INTERACTIVE LAYER
@@ -15,40 +23,68 @@ import io.socket.client.Socket;
 
 public class TWICAndroidPlugin {
 
-    private FirebaseDatabase firebaseDatabase;
-    public FirebaseDatabase getFirebaseDatabase() {
-        return firebaseDatabase;
-    }
-    public void setFirebaseDatabase(FirebaseDatabase firebaseDatabase) {
-        this.firebaseDatabase = firebaseDatabase;
+    private static final String TAG = "com.thestudnet.twicandroidplugin. " + TWICAndroidPlugin.class.getSimpleName();
+
+    public Context getContext() {
+        return context;
     }
 
-    private Socket ioSocket;
-    public Socket getIoSocket() {
-        return ioSocket;
-    }
-    public void setIoSocket(Socket ioSocket) {
-        this.ioSocket = ioSocket;
-    }
+    private Context context;
 
     private static TWICAndroidPlugin instance;
     public TWICAndroidPlugin() {
+        EventBus.getInstance().register(this);
     }
     public static TWICAndroidPlugin getInstance() {
         if(instance == null) {
             TWICAndroidPlugin minstance = new TWICAndroidPlugin();
             instance = minstance;
-            instance.firebaseDatabase = FirebaseDatabase.getInstance();
-            try {
-                instance.ioSocket = IO.socket(IoSocketConfig.SERVER_URL);
-            }
-            catch (URISyntaxException error) {
-
-            }
             return instance;
         } else {
             return instance;
         }
+    }
+
+    public TWICAndroidPlugin initContext(Context context) {
+        this.context = context;
+        return this;
+    }
+
+    public TWICAndroidPlugin configure(String settings) {
+        SettingsManager.getInstance().configure(settings);
+        return this;
+    }
+
+    public void launch() {
+        APIClient.getInstance().getHangoutData();
+    }
+
+    @Subscribe
+    public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
+        if(event.getType() == APIInteraction.Type.ON_HANGOUT_DATA_RECEIVED) {
+            Log.d(TAG, "ON_HANGOUT_DATA_RECEIVED");
+
+            APIClient.getInstance().getHangoutUsers();
+        }
+        else if(event.getType() == APIInteraction.Type.ON_HANGOUT_USERS_RECEIVED) {
+            Log.d(TAG, "ON_HANGOUT_USERS_RECEIVED");
+
+            PluginInteraction.getInstance().FireEvent(PluginInteraction.Type.IS_INITIALIZED, null);
+        }
+    }
+
+    public void onResume() {
+        TokBoxClient.getInstance().resumeSession();
+    }
+
+    public void onPause() {
+        TokBoxClient.getInstance().pauseSession();
+    }
+
+    public void onDestroy() {
+        TokBoxClient.getInstance().disconnectSession();
+        SocketIoClient.getInstance().unregisterIoSocket();
+        EventBus.getInstance().unregister(this);
     }
 
 }

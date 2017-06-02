@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:layout_weight="1"
+        android:clickable="true"
         android:id="@+id/container">
 
     </LinearLayout>
@@ -16,6 +16,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:id="@+id/header"
         android:orientation="horizontal"
         android:padding="@dimen/activity_content_margin">
 
@@ -56,6 +57,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/footer"
         android:gravity="bottom"
         android:orientation="vertical"
         android:padding="@dimen/activity_content_margin">
@@ -111,6 +113,7 @@
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/type_message"
                 android:layout_marginLeft="@dimen/element_margin"
                 android:layout_marginRight="@dimen/element_margin"
                 android:layout_weight="1"

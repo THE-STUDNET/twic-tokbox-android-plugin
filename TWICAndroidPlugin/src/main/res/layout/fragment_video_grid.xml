@@ -1,24 +1,45 @@
-<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment">
+    android:id="@+id/main_container">
+</android.support.constraint.ConstraintLayout>
+<!--<android.support.percent.PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--xmlns:tools="http://schemas.android.com/tools"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+    <!--tools:context="com.thestudnet.twicandroidplugin.fragments.VideoDetailFragmentOldOld">-->
 
-    <RelativeLayout
-        android:id="@+id/subscriberview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        app:layout_heightPercent="50%"
-        app:layout_widthPercent="100%" />
+    <!--&lt;!&ndash;<GridView xmlns:android="http://schemas.android.com/apk/res/android"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:id="@+id/gridview"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:layout_height="match_parent"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:columnWidth="90dp"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:numColumns="auto_fit"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:verticalSpacing="10dp"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:horizontalSpacing="10dp"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:stretchMode="columnWidth"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:gravity="center"&ndash;&gt;-->
+        <!--&lt;!&ndash;/>&ndash;&gt;-->
 
-    <RelativeLayout
-        android:id="@+id/publisherview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        app:layout_heightPercent="50%"
-        app:layout_widthPercent="100%" />
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/subscriberview"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--app:layout_heightPercent="50%"-->
+        <!--app:layout_widthPercent="100%" />-->
 
-</android.support.percent.PercentRelativeLayout>
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/publisherview"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--app:layout_heightPercent="50%"-->
+        <!--app:layout_widthPercent="100%" />-->
+
+<!--</android.support.percent.PercentRelativeLayout>-->

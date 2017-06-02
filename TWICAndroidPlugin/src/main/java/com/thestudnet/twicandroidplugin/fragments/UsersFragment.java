@@ -12,6 +12,7 @@ import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.R2;
 import com.thestudnet.twicandroidplugin.adapters.UserAction;
 import com.thestudnet.twicandroidplugin.adapters.UsersAdapter;
+import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 
 import java.util.ArrayList;
@@ -109,13 +110,12 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
 
     @Override
     public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-        this.close();
+        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_BACK, null);
         return false;
     }
 
     @OnClick(R2.id.button_close) void close() {
-        this.getActivity().finish();
-        this.getActivity().overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
+        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_BACK, null);
     }
 
 }
