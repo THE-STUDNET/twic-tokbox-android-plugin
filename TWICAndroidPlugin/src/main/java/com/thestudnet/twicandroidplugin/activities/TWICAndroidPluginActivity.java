@@ -17,6 +17,7 @@ import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.events.SocketIoInteraction;
+import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
@@ -158,12 +159,6 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     }
 
     private void showUsersActivity() {
-        /*
-        Intent i = new Intent(this, UsersActivity.class);
-        startActivityForResult(i, RESULT_OK);
-        //Set the transition -> method available from Android 2.0 and beyond
-        this.overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
-        */
         // Hide header
         this.findViewById(R.id.header).setVisibility(View.GONE);
         // Hide footer
@@ -186,7 +181,6 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.userDialog.show();
         }
         else if(event.getType() == FragmentInteraction.Type.ON_SHOW_VIDEO_DETAILS_FRAGMENT) {
-
             this.getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.push_left_in, R.anim.push_left_out, R.anim.push_right_in, R.anim.push_right_out)
                     .replace(R.id.container, VideoDetailFragment.newInstance(((GenericModel) event.getData().get(0)).getContentValue("stream_id")))
@@ -200,6 +194,15 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         if(event.getType() == SocketIoInteraction.Type.ON_BACK_PRESSED) {
             // Back
             this.getSupportFragmentManager().popBackStack();
+        }
+    }
+
+    @Subscribe
+    public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
+        if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
+            Log.d(TAG, "ON_SESSION_DISCONNECTED");
+
+            this.finish();
         }
     }
 

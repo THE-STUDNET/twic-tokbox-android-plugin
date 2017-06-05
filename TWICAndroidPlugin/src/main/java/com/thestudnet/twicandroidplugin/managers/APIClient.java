@@ -121,7 +121,7 @@ public class APIClient {
                     }
 
                     if(response != null && response.indicatesSuccess()) {
-                        Log.e(TAG, response.getResult().toString());
+                        Log.d(TAG, response.getResult().toString());
 
                         HangoutManager.getInstance().configure(response.getResult().toString());
 
@@ -298,11 +298,89 @@ public class APIClient {
                     }
 
                     if(response != null && response.indicatesSuccess()) {
-                        Log.e(TAG, response.getResult().toString());
+                        Log.d(TAG, response.getResult().toString());
 
                         UserManager.getInstance().configure(response.getResult().toString());
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_HANGOUT_USERS_RECEIVED, null);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void sendSessionConnected() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("name", "hangout");
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENTJOIN, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in sendSessionConnected");
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void sendConnectionDestroyed() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("name", "hangout");
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENTLEAVE, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in sendSessionConnected");
                     }
                 }
             }.start();

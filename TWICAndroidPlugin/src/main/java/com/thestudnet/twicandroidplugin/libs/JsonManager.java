@@ -6,6 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * INTERACTIVE LAYER
@@ -68,6 +69,19 @@ public class JsonManager {
             }
         }
         return jsonObject;
+    }
+
+    public Set<String> getKeys() {
+        return this.contentValues.keySet();
+    }
+
+    public boolean containsKey(String key) {
+        for(String localKey : this.contentValues.keySet()) {
+            if(key.equals(localKey)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

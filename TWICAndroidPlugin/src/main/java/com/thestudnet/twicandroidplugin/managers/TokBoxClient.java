@@ -19,16 +19,21 @@ import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static android.R.id.list;
 
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
  */
 
-public class TokBoxClient implements Session.SessionListener, Publisher.PublisherListener, Subscriber.VideoListener, Session.SignalListener {
+public class TokBoxClient implements Session.SessionListener, Session.ConnectionListener, Publisher.PublisherListener, Subscriber.VideoListener, Session.SignalListener {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin.managers." + TokBoxClient.class.getSimpleName();
 
@@ -42,6 +47,7 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     public static String SIGNALTYPE_FORCEUNMUTESTREAM             = "hgt_force_unmute_stream";
 
     private Session session;
+    private AtomicBoolean isConnected = new AtomicBoolean(false);
 
     public Publisher getPublisher() {
         return publisher;
@@ -89,19 +95,6 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
             return;
         }
 
-//        if (mSubscriber != null) {
-//            mSubscriberViewContainer.removeView(mSubscriber.getView());
-//            session.unsubscribe(mSubscriber);
-//            mSubscriber.destroy();
-//            mSubscriber = null;
-//        }
-//
-//        if (publisher != null) {
-//            mPublisherViewContainer.removeView(publisher.getView());
-//            session.unpublish(publisher);
-//            publisher.destroy();
-//            publisher = null;
-
         if(this.subscribers != null && this.subscribers.size() > 0) {
             Iterator<Subscriber> iterator = this.subscribers.values().iterator();
             while (iterator.hasNext()) {
@@ -132,6 +125,7 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
                 GenericModel result = (GenericModel) event.getData().get(0);
                 session = new Session(TWICAndroidPlugin.getInstance().getContext(), SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_TOKBOXAPIKEY), result.getContentValue("session"));
                 session.setSessionListener(this);
+                session.setSignalListener(this);
                 session.connect(result.getContentValue("token"));
             }
         }
@@ -143,16 +137,18 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     public void onConnected(Session session) {
         Log.d(TAG, "onConnected: Connected to session " + session.getSessionId());
 
-//        publisher = new Publisher(TWICAndroidPlugin.getInstance().getContext(), "publisher");
-        publisher = new Publisher.Builder(TWICAndroidPlugin.getInstance().getContext())
-                .build();
+        if(this.isConnected.get() == false) {
+            // TODO : Write in firebase user is connected
 
-        publisher.setPublisherListener(this);
-        publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
+            // Register "hangout.join" event with API
+            APIClient.getInstance().sendSessionConnected();
 
-//        mPublisherViewContainer.addView(publisher.getView());
+            // Stop listening to "sessionConnected" tokbox event
+            this.isConnected.set(true);
 
-        this.session.publish(publisher);
+            // Check publish (and auto-publish) permissions
+            this.checkPublishPermissions();
+        }
     }
 
     @Override
@@ -160,30 +156,18 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
         Log.d(TAG, "onDisconnected: disconnected from session " + session.getSessionId());
 
         this.session = null;
+
+        TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SESSION_DISCONNECTED, null);
     }
 
     @Override
     public void onError(Session session, OpentokError opentokError) {
         Log.d(TAG, "onError: Error (" + opentokError.getMessage() + ") in session " + session.getSessionId());
-
-//        Toast.makeText(this.getContext(), "Session error. See the logcat please.", Toast.LENGTH_LONG).show();
-//        this.getActivity().finish();
     }
 
     @Override
     public void onStreamReceived(Session session, Stream stream) {
         Log.d(TAG, "onStreamReceived: New stream " + stream.getStreamId() + " in session " + session.getSessionId());
-
-        /*
-        if (OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
-        }
-        if (mSubscriber != null) {
-            return;
-        }
-
-        registerSubscriberStream(stream);
-        */
         
         registerSubscriberStream(stream);
     }
@@ -203,24 +187,62 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
             list.add(new GenericModel(contentValues));
             TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
         }
+    }
 
-        /*
-        if (OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
+    private void checkPublishPermissions() {
+        if(UserManager.getInstance().hasPublishPermission(UserManager.getInstance().getCurrentUserId())) {
+            publisher = new Publisher.Builder(TWICAndroidPlugin.getInstance().getContext()).build();
+            publisher.setPublisherListener(this);
+            publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
+            this.session.publish(publisher);
         }
-        if (mSubscriber == null) {
-            return;
-        }
-
-        if (mSubscriber.getStream().equals(stream)) {
-            mSubscriberViewContainer.removeView(mSubscriber.getView());
-            mSubscriber.destroy();
-            mSubscriber = null;
-        }
-        */
     }
 
     /**************** END SESSION ****************/
+
+
+
+    /**************** CONNECTION ****************/
+
+    @Override
+    public void onConnectionCreated(Session session, Connection connection) {
+        Log.d(TAG, "onConnectionCreated: connection data = " + connection.getData());
+
+        String userId = connection.getData();
+
+        // Check if user is in users list
+        if(UserManager.getInstance().containsKey(userId)) {
+            // YES
+            // Check if user is YOU
+            if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
+                // NO
+                try {
+                    UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
+                }
+                catch (JSONException e) {
+                    Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+                }
+                // TODO Add "User joined" notification message in conversation panel
+            }
+        }
+        else {
+            // NO
+            // TODO Get User from API
+            // TODO Update Interface: - Add user in users list - Increase user total count - Increase user connected count
+            // TODO Set user connection state to "connected"
+            // TODO Add "User joined" notification message in conversation panel
+        }
+    }
+
+    @Override
+    public void onConnectionDestroyed(Session session, Connection connection) {
+        // Add "User leave" notification message in conversation panel
+        // ( with disconnect reason )
+        APIClient.getInstance().sendConnectionDestroyed(); // TODO pass disconnect reason
+    }
+
+    /**************** END CONNECTION ****************/
+
 
 
     /**************** PUBLISHER ****************/
@@ -228,12 +250,6 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     @Override
     public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
         Log.d(TAG, "onStreamCreated: Own stream " + stream.getStreamId() + " created");
-
-        /*
-        if (!OpenTokConfig.SUBSCRIBE_TO_SELF) {
-            return;
-        }
-        */
 
         // Check if user is in users list
         if(SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY).equals(stream.getConnection().getData())) {
@@ -270,9 +286,6 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     @Override
     public void onError(PublisherKit publisherKit, OpentokError opentokError) {
         Log.d(TAG, "onError: Error (" + opentokError.getMessage() + ") in publisher");
-
-//        Toast.makeText(this.getContext(), "Session error. See the logcat please.", Toast.LENGTH_LONG).show();
-//        this.getActivity().finish();
     }
 
     /**************** END PUBLISHER ****************/
@@ -281,7 +294,6 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     /**************** SUBSCRIBERS ****************/
 
     private void registerSubscriberStream(Stream stream) {
-//        Subscriber mSubscriber = new Subscriber(TWICAndroidPlugin.getInstance().getContext(), stream);
         Subscriber mSubscriber = new Subscriber.Builder(TWICAndroidPlugin.getInstance().getContext(), stream).build();
         mSubscriber.getView().setTag(stream.getStreamId());
 
@@ -301,10 +313,7 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
 
     @Override
     public void onVideoDataReceived(SubscriberKit subscriberKit) {
-//        if(mSubscriber != null) {
-//            mSubscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
-//            mSubscriberViewContainer.addView(mSubscriber.getView());
-//        }
+
     }
 
     @Override
@@ -335,6 +344,31 @@ public class TokBoxClient implements Session.SessionListener, Publisher.Publishe
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
         Log.d(TAG, "onSignalReceived: type = " + type + " , data = " + data);
+
+        if(SIGNALTYPE_CAMERAAUTHORIZATION.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_CANCELCAMERAAUTHORIZATION.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_MICROPHONEAUTHORIZATION.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_CAMERAREQUESTED.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_MICROPHONEREQUESTED.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_FORCEMUTESTREAM.equals(type)) {
+            // TODO
+        }
+        else if(SIGNALTYPE_FORCEUNMUTESTREAM.equals(type)) {
+            // TODO
+        }
     }
 
     /**************** END SIGNALING ****************/

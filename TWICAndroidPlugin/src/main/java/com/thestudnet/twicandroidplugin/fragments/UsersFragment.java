@@ -14,6 +14,9 @@ import com.thestudnet.twicandroidplugin.adapters.UserAction;
 import com.thestudnet.twicandroidplugin.adapters.UsersAdapter;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
+import com.thestudnet.twicandroidplugin.managers.UserManager;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,39 +76,27 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
     }
 
     /*
-         * Preparing the list data
-         */
+     * Preparing the list data
+     */
     private void prepareListData() {
         listDataHeader = new ArrayList<String>();
         listDataChild = new HashMap<String, List<UserAction>>();
+        int index = 0;
 
-        // Adding child data
-        listDataHeader.add("Jeremy Jones");
-        listDataHeader.add("Minerva Hardy");
-        listDataHeader.add("Maurice Morris");
-
-        // Adding child data
-        List<UserAction> top250 = new ArrayList<UserAction>();
-        top250.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
-        top250.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
-        top250.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
-        top250.add(new UserAction(this.getContext().getString(R.string.action_request_kick, listDataHeader.get(0)), -1));
-
-        List<UserAction> nowShowing = new ArrayList<UserAction>();
-        nowShowing.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
-        nowShowing.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
-        nowShowing.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
-        nowShowing.add(new UserAction(this.getContext().getString(R.string.action_request_kick, listDataHeader.get(1)), -1));
-
-        List<UserAction> comingSoon = new ArrayList<UserAction>();
-        comingSoon.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
-        comingSoon.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
-        comingSoon.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
-        comingSoon.add(new UserAction(this.getContext().getString(R.string.action_request_kick, listDataHeader.get(2)), -1));
-
-        listDataChild.put(listDataHeader.get(0), top250); // Header, Child data
-        listDataChild.put(listDataHeader.get(1), nowShowing);
-        listDataChild.put(listDataHeader.get(2), comingSoon);
+        for(String userId : UserManager.getInstance().getKeys()) {
+            // Adding header data
+            JSONObject user = UserManager.getInstance().getSettingsForKey(userId);
+            String displayName = user.optString(UserManager.USER_NICKNAMEKEY, "undefined");
+            listDataHeader.add(displayName);
+            // Adding child data
+            List<UserAction> userActions = new ArrayList<UserAction>();
+            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
+            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
+            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
+            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_kick, displayName), -1));
+            // Adding the whole group of data
+            listDataChild.put(listDataHeader.get(index++), userActions);
+        }
     }
 
     @Override

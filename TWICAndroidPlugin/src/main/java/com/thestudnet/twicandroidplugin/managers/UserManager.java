@@ -57,4 +57,12 @@ public class UserManager extends JsonManager {
         }
     }
 
+    public String getCurrentUserId() {
+        return this.getRawValueForKey(SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY));
+    }
+
+    public boolean hasPublishPermission(String userId) {
+        return true;
+    }
+
 }
