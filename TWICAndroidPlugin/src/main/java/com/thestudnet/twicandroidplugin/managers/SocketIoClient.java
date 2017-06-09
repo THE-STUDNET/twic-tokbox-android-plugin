@@ -102,9 +102,9 @@ public class SocketIoClient {
                     Log.d(TAG, "IOSOCKET : CONNECTED");
                     try {
                         JSONObject params = new JSONObject();
-                        params.put("id", 1);
-                        params.put("authentification", IoSocketConfig.AUTH_TOKEN);
-                        params.put("connection_token", new DeviceUuidFactory(getActivity()).getDeviceUuid().toString());
+                        params.addOrReplace("id", 1);
+                        params.addOrReplace("authentification", IoSocketConfig.AUTH_TOKEN);
+                        params.addOrReplace("connection_token", new DeviceUuidFactory(getActivity()).getDeviceUuid().toString());
                         TWICAndroidPlugin.getInstance().getIoSocket().emit("authentify", params);
                     }
                     catch (JSONException error) {

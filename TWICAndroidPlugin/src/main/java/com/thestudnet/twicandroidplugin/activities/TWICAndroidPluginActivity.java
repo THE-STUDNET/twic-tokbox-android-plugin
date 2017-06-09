@@ -9,11 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.R2;
 import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
+import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.events.SocketIoInteraction;
@@ -21,8 +23,10 @@ import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
+import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
+import com.thestudnet.twicandroidplugin.managers.UserManager;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
 
 import java.util.List;
@@ -51,6 +55,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_twic_android_plugin);
+
+        this.updateUsersCount();
 
         EventBus.getInstance().register(this);
 
@@ -119,7 +125,14 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     /**************** END EASY PERMISSIONS ****************/
 
     @OnClick(R2.id.button_exit) void onButtonExitClicked() {
-        this.finish();
+        // Register "hangout.leave" event with API
+        APIClient.getInstance().sendUserLeave();
+
+        // TODO - Remove Firebase "disconnect" rule.
+
+        // TODO - Remove user from Firebase hangout connected list
+
+        TokBoxClient.getInstance().disconnectSession();
     }
 
     @OnClick(R2.id.button_users) void onButtonUsersClicked() {
@@ -199,11 +212,40 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @Subscribe
     public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
-        if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
+        if(event.getType() == TokBoxInteraction.Type.ON_SESSION_CONNECTED) {
+            Log.d(TAG, "ON_SESSION_CONNECTED");
+
+            this.findViewById(R.id.button_exit).setVisibility(View.VISIBLE);
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
             Log.d(TAG, "ON_SESSION_DISCONNECTED");
 
             this.finish();
         }
+    }
+
+    @Subscribe
+    public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
+        if(event.getType() == APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED) {
+            Log.d(TAG, "ON_USER_CONNECTION_STATE_CHANGED");
+
+            // Update Interface: - Increase user total count - Increase user connected count
+            this.updateUsersCount();
+
+            // TODO Add "User joined" notification message in conversation panel
+        }
+    }
+
+    private void updateUsersCount() {
+        ((TextView) this.findViewById(R.id.users_count)).setText(getResources().getString(R.string.users_count_text, String.valueOf(UserManager.getInstance().getTotalConnectedUsersCount()), String.valueOf(UserManager.getInstance().getTotalUsersCount())));
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            super.onBackPressed();
+        }
+        // else disable back button
     }
 
     @Override

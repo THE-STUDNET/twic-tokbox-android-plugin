@@ -104,8 +104,8 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-//                        jsonParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-//                        param.put("params", jsonParams);
+//                        jsonParams.addOrReplace("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//                        param.addOrReplace("params", jsonParams);
                         param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
                         JSONRPC2Request request = new JSONRPC2Request(TWIC_CONVERSATION_GETPATH, param, requestID);
 
@@ -144,7 +144,7 @@ public class APIClient {
 //            // Construct request
 //            int requestID = new RandomInt().nextNonNegative();
 //            HashMap<String, Object> params = new HashMap<>(1);
-//            params.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//            params.addOrReplace("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
 //            JSONRPC2Request request = new JSONRPC2Request(TWIC_CONVERSATION_GETPATH, params, requestID);
 //
 //            // Send request
@@ -189,8 +189,8 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-//                        jsonParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-//                        param.put("params", jsonParams);
+//                        jsonParams.addOrReplace("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//                        param.addOrReplace("params", jsonParams);
                         param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
                         JSONRPC2Request request = new JSONRPC2Request(TWIC_CONVERSATION_GETTOKENPATH, param, requestID);
 
@@ -228,7 +228,7 @@ public class APIClient {
 //            // Construct request
 //            int requestID = new RandomInt().nextNonNegative();
 //            HashMap<String, Object> params = new HashMap<>(1);
-//            params.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//            params.addOrReplace("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
 //            JSONRPC2Request request = new JSONRPC2Request(TWIC_CONVERSATION_GETPATH, params, requestID);
 //
 //            // Send request
@@ -273,9 +273,9 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-//                        jsonParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-//                        param.put("params", jsonParams);
-//                        param.put("id", HangoutManager.getInstance().getRawValueForKey(HangoutManager.HANGOUT_USERSKEY));
+//                        jsonParams.addOrReplace("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//                        param.addOrReplace("params", jsonParams);
+//                        param.addOrReplace("id", HangoutManager.getInstance().getRawValueForKey(HangoutManager.HANGOUT_USERSKEY));
                         JSONArray jsonIds = new JSONArray(HangoutManager.getInstance().getRawValueForKey(HangoutManager.HANGOUT_USERSKEY));
                         ArrayList<String> ids = new ArrayList<>(jsonIds.length());
                         JSONRPC2Request request = new JSONRPC2Request(TWIC_USER_GETPATH, param, requestID);
@@ -309,7 +309,53 @@ public class APIClient {
         }
     }
 
-    public void sendSessionConnected() {
+    public void getNewUsers(final String userId) {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        // Prepare params
+                        ArrayList<String> ids = new ArrayList<>(1);
+                        ids.add(0, userId);
+                        param.put("id", ids);
+                        // Prepare request
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_USER_GETPATH, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+
+                        // Add user in users list
+                        UserManager.getInstance().addOrReplace(userId, response.getResult().toString());
+                        try {
+                            // Set user connection state to "connected"
+                            JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
+                            UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
+                        } catch (org.json.JSONException e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                            Log.e(TAG, e.getMessage());
+                        }
+
+                        APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void sendUserJoin() {
         if(this.client != null) {
             new Thread() {
                 public void run() {
@@ -341,14 +387,14 @@ public class APIClient {
                         Log.e(TAG, response.getError().toString());
                     }
                     else {
-                        Log.e(TAG, "unknown error in sendSessionConnected");
+                        Log.e(TAG, "unknown error in sendUserJoin");
                     }
                 }
             }.start();
         }
     }
 
-    public void sendConnectionDestroyed() {
+    public void sendUserLeave() {
         if(this.client != null) {
             new Thread() {
                 public void run() {
@@ -380,7 +426,7 @@ public class APIClient {
                         Log.e(TAG, response.getError().toString());
                     }
                     else {
-                        Log.e(TAG, "unknown error in sendSessionConnected");
+                        Log.e(TAG, "unknown error in sendUserJoin");
                     }
                 }
             }.start();

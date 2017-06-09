@@ -10,19 +10,42 @@
     android:orientation="horizontal"
     android:padding="@dimen/list_margin_large">
 
-    <com.makeramen.roundedimageview.RoundedImageView
+    <FrameLayout
         android:id="@+id/user_avatar"
-        android:layout_width="@dimen/avatar"
-        android:layout_height="@dimen/avatar"
-        android:layout_centerVertical="true"
-        android:scaleType="fitCenter"
-        android:src="@color/avatar_border"
-        app:riv_border_color="@color/avatar_border"
-        app:riv_border_width="2dip"
-        app:riv_corner_radius="30dip"
-        app:riv_mutate_background="true"
-        app:riv_oval="true"
-        app:riv_tile_mode="repeat" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true">
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:layout_width="@dimen/avatar"
+            android:layout_height="@dimen/avatar"
+            android:layout_centerVertical="true"
+            android:scaleType="fitCenter"
+            android:src="@color/avatar_border"
+            app:riv_border_color="@color/avatar_border"
+            app:riv_border_width="2dip"
+            app:riv_corner_radius="30dip"
+            app:riv_mutate_background="true"
+            app:riv_oval="true"
+            app:riv_tile_mode="repeat" />
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/user_connection_state"
+            android:layout_width="@dimen/user_connection_state"
+            android:layout_height="@dimen/user_connection_state"
+            android:layout_marginLeft="@dimen/user_connection_state_margin"
+            android:layout_marginTop="@dimen/user_connection_state_margin"
+            android:layout_centerVertical="true"
+            android:scaleType="fitCenter"
+            android:src="@color/action_red"
+            app:riv_border_color="@android:color/transparent"
+            app:riv_border_width="0dip"
+            app:riv_corner_radius="10dip"
+            app:riv_mutate_background="true"
+            app:riv_oval="true"
+            app:riv_tile_mode="repeat" />
+
+    </FrameLayout>
 
     <me.grantland.widget.AutofitTextView
         android:id="@+id/user_name"

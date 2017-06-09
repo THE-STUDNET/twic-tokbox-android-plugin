@@ -20,13 +20,13 @@ import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static android.R.id.list;
 
 /**
  * INTERACTIVE LAYER
@@ -91,9 +91,6 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     }
 
     public void disconnectSession() {
-        if (session == null) {
-            return;
-        }
 
         if(this.subscribers != null && this.subscribers.size() > 0) {
             Iterator<Subscriber> iterator = this.subscribers.values().iterator();
@@ -111,7 +108,9 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             publisher = null;
         }
 
-        session.disconnect();
+        if (session != null) {
+            session.disconnect();
+        }
 
         EventBus.getInstance().unregister(this);
     }
@@ -125,6 +124,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                 GenericModel result = (GenericModel) event.getData().get(0);
                 session = new Session(TWICAndroidPlugin.getInstance().getContext(), SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_TOKBOXAPIKEY), result.getContentValue("session"));
                 session.setSessionListener(this);
+                session.setConnectionListener(this);
                 session.setSignalListener(this);
                 session.connect(result.getContentValue("token"));
             }
@@ -138,10 +138,12 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         Log.d(TAG, "onConnected: Connected to session " + session.getSessionId());
 
         if(this.isConnected.get() == false) {
+            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SESSION_CONNECTED, null);
+
             // TODO : Write in firebase user is connected
 
             // Register "hangout.join" event with API
-            APIClient.getInstance().sendSessionConnected();
+            APIClient.getInstance().sendUserJoin();
 
             // Stop listening to "sessionConnected" tokbox event
             this.isConnected.set(true);
@@ -208,37 +210,79 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public void onConnectionCreated(Session session, Connection connection) {
         Log.d(TAG, "onConnectionCreated: connection data = " + connection.getData());
 
-        String userId = connection.getData();
+        JSONObject user = null;
 
-        // Check if user is in users list
-        if(UserManager.getInstance().containsKey(userId)) {
-            // YES
-            // Check if user is YOU
-            if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
-                // NO
-                try {
-                    UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
-                }
-                catch (JSONException e) {
-                    Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
-                }
-                // TODO Add "User joined" notification message in conversation panel
-            }
+        try {
+            user = new JSONObject(connection.getData());
         }
-        else {
-            // NO
-            // TODO Get User from API
-            // TODO Update Interface: - Add user in users list - Increase user total count - Increase user connected count
-            // TODO Set user connection state to "connected"
-            // TODO Add "User joined" notification message in conversation panel
+        catch (JSONException e) {
+            Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+        }
+
+        if(user != null && user.has("id") && !"".equals(user.optString("id"))) {
+            String userId = user.optString("id");
+            // Check if user is in users list
+            if(UserManager.getInstance().containsKey(userId)) {
+                // YES
+                // Check if user is YOU
+                if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
+                    // NO
+                    try {
+                        // Set user connection state to connected
+                        JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
+                        UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
+                    }
+                    catch (JSONException e) {
+                        Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+                    }
+                    APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    // TODO Add "User joined" notification message in conversation panel
+                }
+            }
+            else {
+                // NO
+                // Get User from API
+                APIClient.getInstance().getNewUsers(userId);
+            }
         }
     }
 
     @Override
     public void onConnectionDestroyed(Session session, Connection connection) {
-        // Add "User leave" notification message in conversation panel
-        // ( with disconnect reason )
-        APIClient.getInstance().sendConnectionDestroyed(); // TODO pass disconnect reason
+        JSONObject user = null;
+
+        try {
+            user = new JSONObject(connection.getData());
+        }
+        catch (JSONException e) {
+            Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+        }
+
+        if(user != null && user.has("id") && !"".equals(user.optString("id"))) {
+            String userId = user.optString("id");
+            // Check if user is in users list
+            if(UserManager.getInstance().containsKey(userId)) {
+                // YES
+                // Check if user is YOU
+                if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
+                    // NO
+                    try {
+                        // Set user connection state to disconnected
+                        JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected");
+                        UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
+                        // TODO : Unset user camera, microphone, screen permission demand
+                    }
+                    catch (JSONException e) {
+                        Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+                    }
+                    APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+
+                    // Add "User leave" notification message in conversation panel
+                    // ( with disconnect reason )
+                    APIClient.getInstance().sendUserLeave(); // TODO pass disconnect reason
+                }
+            }
+        }
     }
 
     /**************** END CONNECTION ****************/

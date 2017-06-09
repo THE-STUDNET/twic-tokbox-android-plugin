@@ -10,6 +10,7 @@ import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.PluginInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
+import com.thestudnet.twicandroidplugin.managers.FirebaseClient;
 import com.thestudnet.twicandroidplugin.managers.SettingsManager;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
@@ -82,8 +83,8 @@ public class TWICAndroidPlugin {
     }
 
     public void onDestroy() {
-        TokBoxClient.getInstance().disconnectSession();
         SocketIoClient.getInstance().unregisterIoSocket();
+        FirebaseClient.getInstance().unregisterFirebaseClient();
         EventBus.getInstance().unregister(this);
     }
 

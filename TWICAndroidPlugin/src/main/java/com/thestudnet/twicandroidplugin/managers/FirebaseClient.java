@@ -33,4 +33,8 @@ public class FirebaseClient {
         }
     }
 
+    public void unregisterFirebaseClient() {
+        // TODO unregisterFirebaseClient ?
+    }
+
 }

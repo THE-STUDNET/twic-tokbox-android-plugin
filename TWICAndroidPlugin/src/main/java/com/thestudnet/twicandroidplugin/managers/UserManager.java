@@ -4,6 +4,8 @@ import android.content.ContentValues;
 
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
+import org.json.JSONObject;
+
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
@@ -58,11 +60,42 @@ public class UserManager extends JsonManager {
     }
 
     public String getCurrentUserId() {
-        return this.getRawValueForKey(SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY));
+        return SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY);
     }
 
     public boolean hasPublishPermission(String userId) {
         return true;
+    }
+
+    /**
+     *
+     * @return the TOTAL number of users, except current user
+     */
+    public int getTotalUsersCount() {
+        int count = super.contentValues.size();
+        if(count > 1) {
+            return count - 1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
+     *
+     * @return the number of CONNECTED users, except current user
+     */
+    public int getTotalConnectedUsersCount() {
+        int connectedCount = 0;
+        for(String userId : UserManager.getInstance().getKeys()) {
+            if (!userId.equals(UserManager.getInstance().getCurrentUserId())) {
+                JSONObject user = UserManager.getInstance().getSettingsForKey(userId);
+                if(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected").equals("connected")) {
+                    connectedCount++;
+                }
+            }
+        }
+        return connectedCount;
     }
 
 }

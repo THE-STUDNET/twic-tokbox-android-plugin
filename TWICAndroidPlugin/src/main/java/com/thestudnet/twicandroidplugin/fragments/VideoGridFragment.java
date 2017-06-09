@@ -176,7 +176,7 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
                 // found a match
                 ArrayList<GenericModel> list = new ArrayList<>(1);
                 ContentValues contentValues = new ContentValues();
-                contentValues.put("", "");
+                contentValues.addOrReplace("", "");
                 list.add(new GenericModel(contentValues));
                 FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, list);
             }

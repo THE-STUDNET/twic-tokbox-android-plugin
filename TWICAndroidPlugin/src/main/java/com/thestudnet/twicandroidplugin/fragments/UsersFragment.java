@@ -8,10 +8,12 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 
+import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.R2;
 import com.thestudnet.twicandroidplugin.adapters.UserAction;
 import com.thestudnet.twicandroidplugin.adapters.UsersAdapter;
+import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 import com.thestudnet.twicandroidplugin.managers.UserManager;
@@ -30,12 +32,12 @@ import butterknife.OnClick;
  * Created by Baptiste PHILIBERT on 08/04/2017.
  */
 
-public class UsersFragment extends CustomFragment implements ExpandableListView.OnChildClickListener {
+public class UsersFragment extends CustomFragment implements ExpandableListView.OnChildClickListener, ExpandableListView.OnGroupClickListener {
 
     private TextView title;
     private ExpandableListView usersListView;
 
-    List<String> listDataHeader;
+    List<JSONObject> listDataHeader;
     HashMap<String, List<UserAction>> listDataChild;
 
     /**
@@ -73,29 +75,43 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
         this.usersListView = (ExpandableListView) view.findViewById(R.id.users_listview);
         this.usersListView.setAdapter(new UsersAdapter(this.getContext(), listDataHeader, listDataChild));
         this.usersListView.setOnChildClickListener(this);
+        this.usersListView.setOnGroupClickListener(this);
     }
 
     /*
      * Preparing the list data
      */
     private void prepareListData() {
-        listDataHeader = new ArrayList<String>();
+        listDataHeader = new ArrayList<JSONObject>();
         listDataChild = new HashMap<String, List<UserAction>>();
         int index = 0;
 
         for(String userId : UserManager.getInstance().getKeys()) {
-            // Adding header data
-            JSONObject user = UserManager.getInstance().getSettingsForKey(userId);
-            String displayName = user.optString(UserManager.USER_NICKNAMEKEY, "undefined");
-            listDataHeader.add(displayName);
-            // Adding child data
-            List<UserAction> userActions = new ArrayList<UserAction>();
-            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
-            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
-            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
-            userActions.add(new UserAction(this.getContext().getString(R.string.action_request_kick, displayName), -1));
-            // Adding the whole group of data
-            listDataChild.put(listDataHeader.get(index++), userActions);
+            if(!userId.equals(UserManager.getInstance().getCurrentUserId())) {
+                // Adding header data
+                JSONObject user = UserManager.getInstance().getSettingsForKey(userId);
+//                String displayName = user.optString(UserManager.USER_NICKNAMEKEY, "no nickname");
+                listDataHeader.add(user);
+                // Adding child data
+                List<UserAction> userActions = new ArrayList<UserAction>();
+                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
+                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
+                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
+                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_kick, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)), -1));
+                // Adding the whole group of data
+                listDataChild.put(userId, userActions);
+            }
+        }
+    }
+
+    @Override
+    public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        JSONObject user = this.listDataHeader.get(groupPosition);
+        if(!"connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+            return true; // Consume the event
+        }
+        else {
+            return false;
         }
     }
 
@@ -107,6 +123,16 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
 
     @OnClick(R2.id.button_close) void close() {
         FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_BACK, null);
+    }
+
+    @Subscribe
+    public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
+        if(event.getType() == APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED) {
+            this.prepareListData();
+            UsersAdapter adapter = new UsersAdapter(this.getContext(), listDataHeader, listDataChild);
+            this.usersListView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        }
     }
 
 }

@@ -37,6 +37,8 @@
 
     <string name="chat_hint">Type your message...</string>
 
+    <string name="users_count_text">%1$s/%2$s</string>
+
     <string name="fragment_users_title">%1$s Members</string>
     <string name="action_request_camera">Send a request for the Camera</string>
     <string name="action_request_mic">Send a request for the Microphone</string>

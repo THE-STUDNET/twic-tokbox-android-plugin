@@ -8,8 +8,7 @@
 
     <color name="text_white">#ffffff</color>
     <color name="text_dark">#000000</color>
-    <color name="text_medium">#606060</color>
-    <color name="text_hint">#A09F9E</color>
+    <color name="text_hint">#CCCDCF</color>
     <color name="text_grey">#444444</color>
 
     <color name="background_dark">#444444</color>

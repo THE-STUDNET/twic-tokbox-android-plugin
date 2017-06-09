@@ -84,4 +84,8 @@ public class JsonManager {
         return false;
     }
 
+    public void addOrReplace(String key, String value) {
+        this.contentValues.put(key, value);
+    }
+
 }

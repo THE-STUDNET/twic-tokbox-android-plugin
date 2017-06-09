@@ -9,6 +9,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.managers.UserManager;
+
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,11 +24,11 @@ import java.util.List;
 public class UsersAdapter extends BaseExpandableListAdapter {
 
     private Context _context;
-    private List<String> _listDataHeader; // header titles
+    private List<JSONObject> _listDataHeader; // header titles
     // child data in format of header title, child title
     private HashMap<String, List<UserAction>> _listDataChild;
 
-    public UsersAdapter(Context context, List<String> listDataHeader, HashMap<String, List<UserAction>> listChildData) {
+    public UsersAdapter(Context context, List<JSONObject> listDataHeader, HashMap<String, List<UserAction>> listChildData) {
         this._context = context;
         this._listDataHeader = listDataHeader;
         this._listDataChild = listChildData;
@@ -33,7 +36,8 @@ public class UsersAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int groupPosition, int childPosititon) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition)).get(childPosititon);
+        JSONObject user = (JSONObject) getGroup(groupPosition);
+        return this._listDataChild.get(user.optString(UserManager.USER_IDKEY)).get(childPosititon);
     }
 
     @Override
@@ -86,11 +90,12 @@ public class UsersAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition)).size();
+        JSONObject user = getGroup(groupPosition);
+        return this._listDataChild.get(user.optString(UserManager.USER_IDKEY)).size();
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
+    public JSONObject getGroup(int groupPosition) {
         return this._listDataHeader.get(groupPosition);
     }
 
@@ -106,16 +111,31 @@ public class UsersAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        String headerTitle = (String) getGroup(groupPosition);
+        JSONObject user = (JSONObject) getGroup(groupPosition);
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) this._context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.list_user, null);
         }
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.user_name);
-        lblListHeader.setText(headerTitle);
+        lblListHeader.setText(user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY));
 
+        com.makeramen.roundedimageview.RoundedImageView user_connection_state = (com.makeramen.roundedimageview.RoundedImageView) convertView.findViewById(R.id.user_connection_state);
+        ImageView sharing_mic = (ImageView) convertView.findViewById(R.id.sharing_mic);
+        ImageView sharing_screen = (ImageView) convertView.findViewById(R.id.sharing_screen);
         ImageView expandablelistview_indicator = (ImageView) convertView.findViewById(R.id.expandablelistview_indicator);
+        if("connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+            user_connection_state.setImageResource(R.color.action_green);
+            sharing_mic.setVisibility(View.VISIBLE);
+            sharing_screen.setVisibility(View.VISIBLE);
+            expandablelistview_indicator.setVisibility(View.VISIBLE);
+        }
+        else {
+            user_connection_state.setImageResource(R.color.action_red);
+            sharing_mic.setVisibility(View.INVISIBLE);
+            sharing_screen.setVisibility(View.INVISIBLE);
+            expandablelistview_indicator.setVisibility(View.INVISIBLE);
+        }
         expandablelistview_indicator.setSelected(isExpanded);
 
         return convertView;
@@ -128,7 +148,13 @@ public class UsersAdapter extends BaseExpandableListAdapter {
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
+        JSONObject user = (JSONObject) getGroup(groupPosition);
+        if(!"connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
 }

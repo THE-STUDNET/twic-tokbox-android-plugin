@@ -13,7 +13,8 @@ public class APIInteraction {
     public enum Type {
         ON_HANGOUT_DATA_RECEIVED(0),
         ON_HANGOUT_USERS_RECEIVED(1),
-        ON_TOKBOX_DATA_RECEIVED(2);
+        ON_TOKBOX_DATA_RECEIVED(2),
+        ON_USER_CONNECTION_STATE_CHANGED(3);
 
         private int value;
 
