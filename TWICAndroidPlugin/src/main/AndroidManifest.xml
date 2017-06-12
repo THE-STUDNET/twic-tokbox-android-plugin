@@ -9,7 +9,7 @@
         android:theme="@style/AppTheme"
         android:supportsRtl="true">
 
-        <activity android:name="com.thestudnet.twicandroidplugin.activities.TWICAndroidPluginActivity" android:windowSoftInputMode="stateAlwaysHidden" />
+        <activity android:name="com.thestudnet.twicandroidplugin.activities.TWICAndroidPluginActivity" android:windowSoftInputMode="stateAlwaysHidden" android:screenOrientation="portrait" />
 
     </application>
 

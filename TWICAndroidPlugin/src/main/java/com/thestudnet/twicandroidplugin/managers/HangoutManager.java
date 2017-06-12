@@ -44,6 +44,7 @@ public class HangoutManager extends JsonManager {
         // TODO : remove before moving to production !
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) return false;
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) return false;
+//        if(rule.equals(HangoutManager.HANGOUT_ACTIONPUBLISH)) return false;
         JSONObject rules = HangoutManager.getInstance().getSettingsForKey(HangoutManager.HANGOUT_OPTIONSKEY, "rules");
         if(rules != null) {
             return rules.optBoolean(rule, false);

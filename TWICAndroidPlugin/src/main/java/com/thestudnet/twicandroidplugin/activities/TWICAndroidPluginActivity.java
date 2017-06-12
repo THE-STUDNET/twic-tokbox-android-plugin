@@ -53,10 +53,16 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     private AlertDialog userDialog;
 
+    private ImageView publish_camera;
+    private ImageView publish_mic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_twic_android_plugin);
+
+        this.publish_camera = (ImageView) this.findViewById(R.id.publish_camera);
+        this.publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
 
         this.updateUsersCount();
 
@@ -143,19 +149,24 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @OnClick(R2.id.publish_camera) void onButtonPublishCameraClicked() {
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
-            TokBoxClient.getInstance().publish(true, false);
+            TokBoxClient.getInstance().publish(true, true);
+            this.publish_camera.setVisibility(View.GONE);
+            this.publish_mic.setVisibility(View.GONE);
         }
         else {
-            // TODO : Signal "hgt_camera_authorization" via tokbox
+            // Signal "hgt_camera_authorization" via tokbox
+            TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION);
         }
     }
 
     @OnClick(R2.id.publish_mic) void onButtonPublishMicClicked() {
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
             TokBoxClient.getInstance().publish(false, true);
+            this.publish_mic.setVisibility(View.GONE);
         }
         else {
-            // TODO : Signal "hgt_microphone_authorization" via tokbox
+            // Signal "hgt_microphone_authorization" via tokbox
+            TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION);
         }
     }
 
@@ -237,12 +248,18 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
             this.findViewById(R.id.button_exit).setVisibility(View.VISIBLE);
 
-            this.checkPublishPermission();
+            if(!HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA) || !HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) {
+                this.checkPublishPermission();
+            }
+            // else wait for the (publisher) stream created event
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
             Log.d(TAG, "ON_SESSION_DISCONNECTED");
 
             this.finish();
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) { // the (publisher) stream created event
+            this.checkPublishPermission();
         }
     }
 
@@ -263,23 +280,19 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     }
 
     private void checkPublishPermission() {
-        // Show the buttons
-        this.findViewById(R.id.publish_camera).setVisibility(View.VISIBLE);
-        this.findViewById(R.id.publish_mic).setVisibility(View.VISIBLE);
-        // Check permission
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
-            if(UserManager.getInstance().isSharingCamera(UserManager.getInstance().getCurrentUserId())) {
-                this.findViewById(R.id.publish_camera).setVisibility(View.GONE);
+            if(UserManager.getInstance().isCurrentUserSharingCamera()) {
+                // Fine...hide buttons
             }
-            if(UserManager.getInstance().isSharingAudio(UserManager.getInstance().getCurrentUserId())) {
-                this.findViewById(R.id.publish_mic).setVisibility(View.GONE);
+            else if(UserManager.getInstance().isCurrentUserSharingAudio()) {
+                this.publish_camera.setVisibility(View.VISIBLE);
             }
         }
         else {
-            ImageView publish_camera = (ImageView) this.findViewById(R.id.publish_camera);
-            publish_camera.setImageResource(R.drawable.ask_publish_camera);
-            ImageView publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
-            publish_mic.setImageResource(R.drawable.ask_publish_mic);
+            this.publish_camera.setImageResource(R.drawable.ask_publish_camera);
+            this.publish_camera.setVisibility(View.VISIBLE);
+            this.publish_mic.setImageResource(R.drawable.ask_publish_mic);
+            this.publish_mic.setVisibility(View.VISIBLE);
         }
     }
 

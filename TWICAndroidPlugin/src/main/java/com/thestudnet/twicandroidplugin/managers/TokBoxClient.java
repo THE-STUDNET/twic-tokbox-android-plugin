@@ -444,6 +444,21 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
 
     /**************** SIGNALING ****************/
 
+    public void broadcastSignal(String signalName) {
+        if(this.session != null) {
+            this.session.sendSignal(signalName, null);
+        }
+    }
+
+    public void sendSignal(String signalName, String toUserId) {
+        if(this.session != null && this.subscribers != null && this.subscribers.size() > 0) {
+            Subscriber to = this.subscribers.get(toUserId);
+            if(to != null && to.getStream() != null && to.getStream().getConnection() != null) {
+                this.session.sendSignal(signalName, null, to.getStream().getConnection());
+            }
+        }
+    }
+
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
         Log.d(TAG, "onSignalReceived: type = " + type + " , data = " + data);

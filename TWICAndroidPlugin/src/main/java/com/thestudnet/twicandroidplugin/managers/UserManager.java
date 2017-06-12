@@ -2,6 +2,7 @@ package com.thestudnet.twicandroidplugin.managers;
 
 import android.content.ContentValues;
 
+import com.opentok.android.Publisher;
 import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
@@ -65,10 +66,26 @@ public class UserManager extends JsonManager {
         return SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY);
     }
 
+    public boolean isCurrentUserSharingAudio() {
+        Publisher publisher = TokBoxClient.getInstance().getPublisher();
+        if(publisher != null && publisher.getStream() != null) {
+            return publisher.getStream().hasAudio();
+        }
+        return false;
+    }
+
     public boolean isSharingAudio(String userId) {
         Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null) {
-            if(subscriber.getStream().hasAudio()) {
+        if(subscriber != null && subscriber.getStream() != null) {
+            return subscriber.getStream().hasAudio();
+        }
+        return false;
+    }
+
+    public boolean isCurrentUserSharingCamera() {
+        Publisher publisher = TokBoxClient.getInstance().getPublisher();
+        if(publisher != null && publisher.getStream() != null) {
+            if(publisher.getStream().hasVideo() && publisher.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera) {
                 return true;
             }
         }
@@ -77,8 +94,18 @@ public class UserManager extends JsonManager {
 
     public boolean isSharingCamera(String userId) {
         Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null) {
+        if(subscriber != null && subscriber.getStream() != null) {
             if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isCurrentUserSharingScreen() {
+        Publisher publisher = TokBoxClient.getInstance().getPublisher();
+        if(publisher != null && publisher.getStream() != null) {
+            if(publisher.getStream().hasVideo() && publisher.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen) {
                 return true;
             }
         }
@@ -87,7 +114,7 @@ public class UserManager extends JsonManager {
 
     public boolean isSharingScreen(String userId) {
         Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null) {
+        if(subscriber != null && subscriber.getStream() != null) {
             if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen) {
                 return true;
             }
