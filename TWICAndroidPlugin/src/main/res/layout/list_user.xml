@@ -17,11 +17,11 @@
         android:layout_centerVertical="true">
 
         <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/user_avatar_image"
             android:layout_width="@dimen/avatar"
             android:layout_height="@dimen/avatar"
             android:layout_centerVertical="true"
             android:scaleType="fitCenter"
-            android:src="@color/avatar_border"
             app:riv_border_color="@color/avatar_border"
             app:riv_border_width="2dip"
             app:riv_corner_radius="30dip"
@@ -59,12 +59,21 @@
         app:layout_widthPercent="40%" />
 
     <ImageView
-        android:id="@+id/sharing_mic"
+        android:id="@+id/sharing_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginLeft="@dimen/element_margin_large"
         android:layout_toRightOf="@+id/user_name"
+        android:src="@drawable/sharing_camera" />
+
+    <ImageView
+        android:id="@+id/sharing_mic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/element_margin_large"
+        android:layout_toRightOf="@+id/sharing_camera"
         android:src="@drawable/sharing_mic" />
 
     <ImageView

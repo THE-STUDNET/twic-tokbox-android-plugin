@@ -71,6 +71,10 @@ public class JsonManager {
         return jsonObject;
     }
 
+    public JSONObject getSettingsForKey(String keyFirstLevel, String keySecondLevel) {
+        return this.getSettingsForKey(keyFirstLevel).optJSONObject(keySecondLevel);
+    }
+
     public Set<String> getKeys() {
         return this.contentValues.keySet();
     }

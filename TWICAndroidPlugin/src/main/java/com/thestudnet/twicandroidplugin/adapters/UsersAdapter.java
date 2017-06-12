@@ -8,7 +8,9 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.managers.SettingsManager;
 import com.thestudnet.twicandroidplugin.managers.UserManager;
 
 import org.json.JSONObject;
@@ -121,21 +123,58 @@ public class UsersAdapter extends BaseExpandableListAdapter {
         lblListHeader.setText(user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY));
 
         com.makeramen.roundedimageview.RoundedImageView user_connection_state = (com.makeramen.roundedimageview.RoundedImageView) convertView.findViewById(R.id.user_connection_state);
+        ImageView sharing_camera = (ImageView) convertView.findViewById(R.id.sharing_camera);
         ImageView sharing_mic = (ImageView) convertView.findViewById(R.id.sharing_mic);
         ImageView sharing_screen = (ImageView) convertView.findViewById(R.id.sharing_screen);
         ImageView expandablelistview_indicator = (ImageView) convertView.findViewById(R.id.expandablelistview_indicator);
+        // Check user connection state
         if("connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
             user_connection_state.setImageResource(R.color.action_green);
-            sharing_mic.setVisibility(View.VISIBLE);
-            sharing_screen.setVisibility(View.VISIBLE);
+            // Check user streaming states
+            if(UserManager.getInstance().isSharingAudio(user.optString(UserManager.USER_IDKEY, ""))) {
+                sharing_mic.setVisibility(View.VISIBLE);
+            }
+            else {
+                sharing_mic.setVisibility(View.INVISIBLE);
+            }
+            if(UserManager.getInstance().isSharingCamera(user.optString(UserManager.USER_IDKEY, ""))) {
+                sharing_camera.setVisibility(View.VISIBLE);
+            }
+            else {
+                sharing_camera.setVisibility(View.INVISIBLE);
+            }
+            if(UserManager.getInstance().isSharingScreen(user.optString(UserManager.USER_IDKEY, ""))) {
+                sharing_screen.setVisibility(View.VISIBLE);
+            }
+            else {
+                sharing_screen.setVisibility(View.INVISIBLE);
+            }
             expandablelistview_indicator.setVisibility(View.VISIBLE);
         }
         else {
             user_connection_state.setImageResource(R.color.action_red);
             sharing_mic.setVisibility(View.INVISIBLE);
+            sharing_camera.setVisibility(View.INVISIBLE);
             sharing_screen.setVisibility(View.INVISIBLE);
             expandablelistview_indicator.setVisibility(View.INVISIBLE);
         }
+
+        ImageView user_avatar_image = (ImageView) convertView.findViewById(R.id.user_avatar_image);
+        JSONObject dsmSettings = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_DMSKEY);
+        if(dsmSettings != null) {
+            JSONObject pathKeySettings = dsmSettings.optJSONObject(SettingsManager.SETTINGS_PATHSKEY);
+            if(pathKeySettings != null) {
+                String url = dsmSettings.optString(SettingsManager.SETTINGS_PROTOCOLKEY, "")
+                        + "://"
+                        + dsmSettings.optString(SettingsManager.SETTINGS_DOMAINKEY, "")
+                        + "/"
+                        + pathKeySettings.optString("datas", "")
+                        + "/"
+                        + user.optString(UserManager.USER_AVATARKEY, "");
+                Glide.with(this._context).load(url).fitCenter().into(user_avatar_image);
+            }
+        }
+
         expandablelistview_indicator.setSelected(isExpanded);
 
         return convertView;

@@ -4,6 +4,8 @@ import android.content.ContentValues;
 
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
+import org.json.JSONObject;
+
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
@@ -37,5 +39,28 @@ public class HangoutManager extends JsonManager {
             return instance;
         }
     }
+
+    public boolean getRule(String rule) {
+        // TODO : remove before moving to production !
+//        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) return false;
+//        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) return false;
+        JSONObject rules = HangoutManager.getInstance().getSettingsForKey(HangoutManager.HANGOUT_OPTIONSKEY, "rules");
+        if(rules != null) {
+            return rules.optBoolean(rule, false);
+        }
+        else {
+            return false;
+        }
+    }
+
+    /*
+    public boolean hasAutoPublishCamera(String userId) {
+        return HangoutManager.getInstance().getActionSetting(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA);
+    }
+
+    public boolean hasAutoPublishMicrophone(String userId) {
+        return HangoutManager.getInstance().getActionSetting(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE);
+    }
+    */
 
 }

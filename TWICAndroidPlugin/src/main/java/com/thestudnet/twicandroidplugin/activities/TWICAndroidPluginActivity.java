@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
@@ -24,6 +25,7 @@ import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
+import com.thestudnet.twicandroidplugin.managers.HangoutManager;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
 import com.thestudnet.twicandroidplugin.managers.UserManager;
@@ -139,6 +141,24 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.showUsersActivity();
     }
 
+    @OnClick(R2.id.publish_camera) void onButtonPublishCameraClicked() {
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
+            TokBoxClient.getInstance().publish(true, false);
+        }
+        else {
+            // TODO : Signal "hgt_camera_authorization" via tokbox
+        }
+    }
+
+    @OnClick(R2.id.publish_mic) void onButtonPublishMicClicked() {
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
+            TokBoxClient.getInstance().publish(false, true);
+        }
+        else {
+            // TODO : Signal "hgt_microphone_authorization" via tokbox
+        }
+    }
+
     private void buildUserDialog() {
         LayoutInflater factory = LayoutInflater.from(this);
         View userDialogView = factory.inflate(R.layout.popup_user, null);
@@ -216,6 +236,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             Log.d(TAG, "ON_SESSION_CONNECTED");
 
             this.findViewById(R.id.button_exit).setVisibility(View.VISIBLE);
+
+            this.checkPublishPermission();
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
             Log.d(TAG, "ON_SESSION_DISCONNECTED");
@@ -238,6 +260,27 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     private void updateUsersCount() {
         ((TextView) this.findViewById(R.id.users_count)).setText(getResources().getString(R.string.users_count_text, String.valueOf(UserManager.getInstance().getTotalConnectedUsersCount()), String.valueOf(UserManager.getInstance().getTotalUsersCount())));
+    }
+
+    private void checkPublishPermission() {
+        // Show the buttons
+        this.findViewById(R.id.publish_camera).setVisibility(View.VISIBLE);
+        this.findViewById(R.id.publish_mic).setVisibility(View.VISIBLE);
+        // Check permission
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
+            if(UserManager.getInstance().isSharingCamera(UserManager.getInstance().getCurrentUserId())) {
+                this.findViewById(R.id.publish_camera).setVisibility(View.GONE);
+            }
+            if(UserManager.getInstance().isSharingAudio(UserManager.getInstance().getCurrentUserId())) {
+                this.findViewById(R.id.publish_mic).setVisibility(View.GONE);
+            }
+        }
+        else {
+            ImageView publish_camera = (ImageView) this.findViewById(R.id.publish_camera);
+            publish_camera.setImageResource(R.drawable.ask_publish_camera);
+            ImageView publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
+            publish_mic.setImageResource(R.drawable.ask_publish_mic);
+        }
     }
 
     @Override

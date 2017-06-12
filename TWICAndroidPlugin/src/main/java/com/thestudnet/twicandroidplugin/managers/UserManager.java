@@ -2,6 +2,8 @@ package com.thestudnet.twicandroidplugin.managers;
 
 import android.content.ContentValues;
 
+import com.opentok.android.Stream;
+import com.opentok.android.Subscriber;
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
 import org.json.JSONObject;
@@ -63,8 +65,34 @@ public class UserManager extends JsonManager {
         return SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY);
     }
 
-    public boolean hasPublishPermission(String userId) {
-        return true;
+    public boolean isSharingAudio(String userId) {
+        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(subscriber != null) {
+            if(subscriber.getStream().hasAudio()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isSharingCamera(String userId) {
+        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(subscriber != null) {
+            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isSharingScreen(String userId) {
+        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(subscriber != null) {
+            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -25,7 +25,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -115,6 +114,14 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         EventBus.getInstance().unregister(this);
     }
 
+    public void publish(boolean video, boolean audio) {
+        if(this.session != null && this.publisher != null) {
+            this.publisher.setPublishVideo(video);
+            this.publisher.setPublishAudio(audio);
+            this.session.publish(this.publisher);
+        }
+    }
+
     @Subscribe
     public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
         if(event.getType() == APIInteraction.Type.ON_TOKBOX_DATA_RECEIVED) {
@@ -138,7 +145,6 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         Log.d(TAG, "onConnected: Connected to session " + session.getSessionId());
 
         if(this.isConnected.get() == false) {
-            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SESSION_CONNECTED, null);
 
             // TODO : Write in firebase user is connected
 
@@ -149,7 +155,9 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             this.isConnected.set(true);
 
             // Check publish (and auto-publish) permissions
-            this.checkPublishPermissions();
+            this.checkAutoPublishPermissions();
+
+            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SESSION_CONNECTED, null);
         }
     }
 
@@ -178,25 +186,19 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public void onStreamDropped(Session session, Stream stream) {
         Log.d(TAG, "onStreamDropped: Stream " + stream.getStreamId() + " dropped from session " + session.getSessionId());
 
-        if(this.subscribers.containsKey(stream.getStreamId())) {
-            this.session.unsubscribe(this.subscribers.get(stream.getStreamId()));
-            this.subscribers.get(stream.getStreamId()).destroy();
-            this.subscribers.remove(stream.getStreamId());
-
-            ArrayList<GenericModel> list = new ArrayList<>(1);
-            ContentValues contentValues = new ContentValues();
-            contentValues.put("id", stream.getStreamId());
-            list.add(new GenericModel(contentValues));
-            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
-        }
+        unregisterSubscriberStream(stream);
     }
 
-    private void checkPublishPermissions() {
-        if(UserManager.getInstance().hasPublishPermission(UserManager.getInstance().getCurrentUserId())) {
-            publisher = new Publisher.Builder(TWICAndroidPlugin.getInstance().getContext()).build();
-            publisher.setPublisherListener(this);
-            publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
-            this.session.publish(publisher);
+    private void checkAutoPublishPermissions() {
+        publisher = new Publisher.Builder(TWICAndroidPlugin.getInstance().getContext()).build();
+        publisher.setPublisherListener(this);
+        publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
+
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) {
+            this.publish(true, true);
+        }
+        else if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) {
+            this.publish(true, false);
         }
     }
 
@@ -338,6 +340,36 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     /**************** SUBSCRIBERS ****************/
 
     private void registerSubscriberStream(Stream stream) {
+        JSONObject user = null;
+
+        try {
+            user = new JSONObject(stream.getConnection().getData());
+        }
+        catch (JSONException e) {
+            Log.e(TAG, "registerSubscriberStream: exception : " + e.getLocalizedMessage());
+        }
+
+        if(user != null && user.has("id") && !"".equals(user.optString("id"))) {
+            String userId = user.optString("id");
+
+            Subscriber mSubscriber = new Subscriber.Builder(TWICAndroidPlugin.getInstance().getContext(), stream).build();
+            mSubscriber.getView().setTag(userId);
+
+            mSubscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
+            this.subscribers.put(userId, mSubscriber);
+
+            mSubscriber.setVideoListener(this);
+
+            session.subscribe(mSubscriber);
+
+            ArrayList<GenericModel> list = new ArrayList<>(1);
+            ContentValues contentValues = new ContentValues();
+            contentValues.put("id", userId);
+            list.add(new GenericModel(contentValues));
+            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_ADDED, list);
+        }
+
+        /*
         Subscriber mSubscriber = new Subscriber.Builder(TWICAndroidPlugin.getInstance().getContext(), stream).build();
         mSubscriber.getView().setTag(stream.getStreamId());
 
@@ -353,6 +385,33 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         contentValues.put("id", stream.getStreamId());
         list.add(new GenericModel(contentValues));
         TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_ADDED, list);
+        */
+    }
+
+    private void unregisterSubscriberStream(Stream stream) {
+        JSONObject user = null;
+
+        try {
+            user = new JSONObject(stream.getConnection().getData());
+        } catch (JSONException e) {
+            Log.e(TAG, "registerSubscriberStream: exception : " + e.getLocalizedMessage());
+        }
+
+        if (user != null && user.has("id") && !"".equals(user.optString("id"))) {
+            String userId = user.optString("id");
+
+            if(this.subscribers.containsKey(userId)) {
+                this.session.unsubscribe(this.subscribers.get(userId));
+                this.subscribers.get(userId).destroy();
+                this.subscribers.remove(userId);
+
+                ArrayList<GenericModel> list = new ArrayList<>(1);
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("id", userId);
+                list.add(new GenericModel(contentValues));
+                TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
+            }
+        }
     }
 
     @Override
