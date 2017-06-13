@@ -50,8 +50,6 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
     private AtomicInteger subscribers;
     private Publisher mPublisher;
 
-    boolean canpublish = false;
-
     /**
      * Returns a new instance of this fragment
      */
@@ -71,8 +69,6 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_video_grid, container, false);
-
-        this.canpublish = true;
 
         this.subscribers = new AtomicInteger(0);
 
@@ -228,7 +224,7 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
 
             calculateLayout();
         }
-        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) {
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) { // the (publisher) stream created event
             Log.d(TAG, "ON_PUBLISHER_ADDED");
 
 //            streamsAdapter.reload();
@@ -286,7 +282,14 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) {
             mContainer.removeAllViews();
-            mPublisher = null;
+            this.subscribers.set(0);
+
+            if(mPublisher != null) {
+                if(mPublisher.getView() != null) {
+                    mPublisher.getView().setOnClickListener(null);
+                }
+                mPublisher = null;
+            }
 
             Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
             while (iterator.hasNext()) {
@@ -320,7 +323,7 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
             return;
         }
 
-        if(TokBoxClient.getInstance().getPublisher() != null && this.canpublish) { // TODO and user has right to publish
+        if(TokBoxClient.getInstance().getPublisher() != null) { // TODO and user has right to publish
             if (size == 0) {
                 // Publisher full screen
                 set.layoutViewFullScreen(R.id.publisher_view_id);

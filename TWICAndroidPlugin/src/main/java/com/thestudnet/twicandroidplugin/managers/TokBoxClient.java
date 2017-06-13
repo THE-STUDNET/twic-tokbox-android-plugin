@@ -115,10 +115,26 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     }
 
     public void publish(boolean video, boolean audio) {
+        if(this.session != null) {
+            if(this.publisher != null) {
+                this.publisher.setPublishVideo(video);
+                this.publisher.setPublishAudio(audio);
+//                this.session.publish(this.publisher);
+            }
+            else {
+                publisher = new Publisher.Builder(TWICAndroidPlugin.getInstance().getContext()).build();
+                publisher.setPublisherListener(this);
+                publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
+                this.publisher.setPublishVideo(video);
+                this.publisher.setPublishAudio(audio);
+                this.session.publish(this.publisher);
+            }
+        }
+    }
+
+    public void unpublish() {
         if(this.session != null && this.publisher != null) {
-            this.publisher.setPublishVideo(video);
-            this.publisher.setPublishAudio(audio);
-            this.session.publish(this.publisher);
+            this.session.unpublish(this.publisher);
         }
     }
 
@@ -195,11 +211,14 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
 
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) {
-            this.publish(true, true);
+            this.publisher.setPublishVideo(true);
+            this.publisher.setPublishAudio(true);
         }
         else if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) {
-            this.publish(true, false);
+            this.publisher.setPublishVideo(false);
+            this.publisher.setPublishAudio(true);
         }
+        this.session.publish(this.publisher);
     }
 
     /**************** END SESSION ****************/
@@ -317,7 +336,6 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         Log.d(TAG, "onStreamDestroyed: Own stream " + stream.getStreamId() + " destroyed");
 
         if(this.publisher != null) {
-            this.session.unpublish(this.publisher);
             this.publisher.destroy();
             this.publisher = null;
 

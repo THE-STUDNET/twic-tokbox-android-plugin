@@ -30,19 +30,21 @@ public class APIClient {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin.managers." + APIClient.class.getSimpleName();
 
-    public static String TWIC_CONVERSATION_GETPATH        = "conversation.get";
-    public static String TWIC_CONVERSATION_GETTOKENPATH   = "conversation.getToken";
-    public static String TWIC_USER_GETPATH                = "user.get";
-    public static String TWIC_ACTIVITY_ADDPATH            = "activity.add";
+    public static String TWIC_CONVERSATION_GETPATH          = "conversation.get";
+    public static String TWIC_CONVERSATION_GETTOKENPATH     = "conversation.getToken";
+    public static String TWIC_USER_GETPATH                  = "user.get";
+    public static String TWIC_ACTIVITY_ADDPATH              = "activity.add";
     
-    public static String HANGOUT_EVENTJOIN            = "hangout.join";
-    public static String HANGOUT_EVENTLEAVE           = "hangout.leave";
-    public static String HANGOUT_EVENTUSERSPOKE       = "hangout.userspoke";
-    public static String HANGOUT_EVENTSHARECAMERA     = "hangout.sharecamera";
-    public static String HANGOUT_EVENTSHAREMICROPHONE = "hangout.sharemicrophone";
-    public static String HANGOUT_EVENTMESSAGE         = "hangout.message";
-    public static String HANGOUT_EVENTSTARTRECORD     = "hangout.startrecord";
-    public static String HANGOUT_EVENTSTOPRECORD      = "hangout.stoprecord";
+    public static String HANGOUT_EVENTJOIN                  = "hangout.join";
+    public static String HANGOUT_EVENTLEAVE                 = "hangout.leave";
+    public static String HANGOUT_EVENTUSERSPOKE             = "hangout.userspoke";
+    public static String HANGOUT_EVENTSHARECAMERA           = "hangout.sharecamera";
+    public static String HANGOUT_EVENTSHAREMICROPHONE       = "hangout.sharemicrophone";
+    public static String HANGOUT_EVENTMESSAGE               = "hangout.message";
+    public static String HANGOUT_EVENTSTARTRECORD           = "hangout.startrecord";
+    public static String HANGOUT_EVENTSTOPRECORD            = "hangout.stoprecord";
+    public static String HANGOUT_EVENTASKMICROPHONEAUTH   = "hangout.ask_microphone_auth";
+    public static String HANGOUT_EVENTASKCAMERAAUTH       = "hangout.ask_camera_auth";
 
     private JSONRPC2Session client;
 
@@ -349,6 +351,41 @@ public class APIClient {
                         }
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void registerEventName(final String eventName) {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("name", "hangout");
+                        JSONRPC2Request request = new JSONRPC2Request(eventName, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in " + eventName);
                     }
                 }
             }.start();

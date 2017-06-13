@@ -41,10 +41,11 @@
             <me.grantland.widget.AutofitTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/user_action_mic_text"
                 android:layout_marginBottom="@dimen/element_margin"
                 android:gravity="center"
                 android:lines="1"
-                android:text="@string/user_action_mic_2"
+                android:text="@string/user_action_mic_turn_off"
                 android:textColor="@color/text_grey"
                 android:textSize="@dimen/text_small" />
 
@@ -77,10 +78,11 @@
             <me.grantland.widget.AutofitTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/user_action_camera_text"
                 android:layout_marginBottom="@dimen/element_margin"
                 android:gravity="center"
                 android:lines="1"
-                android:text="@string/user_action_cam_2"
+                android:text="@string/user_action_cam_turn_off"
                 android:textColor="@color/text_grey"
                 android:textSize="@dimen/text_small" />
 
@@ -122,10 +124,11 @@
             <me.grantland.widget.AutofitTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/user_action_rotate_text"
                 android:layout_marginBottom="@dimen/element_margin"
                 android:gravity="center"
                 android:lines="1"
-                android:text="@string/user_action_rotate_2"
+                android:text="@string/user_action_rotate_front_cam"
                 android:textColor="@color/text_grey"
                 android:textSize="@dimen/text_small" />
 
@@ -158,10 +161,11 @@
             <me.grantland.widget.AutofitTextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/user_action_stop_text"
                 android:layout_marginBottom="@dimen/element_margin"
                 android:gravity="center"
                 android:lines="1"
-                android:text="@string/user_action_stop_2"
+                android:text="@string/user_action_stop_your_stream"
                 android:textColor="@color/text_grey"
                 android:textSize="@dimen/text_small" />
 

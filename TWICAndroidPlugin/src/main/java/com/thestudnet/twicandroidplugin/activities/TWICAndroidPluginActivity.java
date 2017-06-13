@@ -156,17 +156,35 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         else {
             // Signal "hgt_camera_authorization" via tokbox
             TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION);
+            // Register "hangout.ask_camera_auth" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENTASKCAMERAAUTH);
         }
     }
 
     @OnClick(R2.id.publish_mic) void onButtonPublishMicClicked() {
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
-            TokBoxClient.getInstance().publish(false, true);
+            TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), true);
             this.publish_mic.setVisibility(View.GONE);
         }
         else {
             // Signal "hgt_microphone_authorization" via tokbox
             TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION);
+            // Register "hangout.ask_microphone_auth" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENTASKMICROPHONEAUTH);
+        }
+    }
+
+    private void updateUserDialog() {
+        if(this.userDialog != null) {
+            TextView user_action_mic_text = (TextView) this.userDialog.findViewById(R.id.user_action_mic_text);
+            if(user_action_mic_text != null && UserManager.getInstance().isCurrentUserSharingAudio()) {
+                user_action_mic_text.setText(R.string.user_action_mic_turn_off);
+            }
+
+            TextView user_action_camera_text = (TextView) this.userDialog.findViewById(R.id.user_action_camera_text);
+            if(user_action_camera_text != null && UserManager.getInstance().isCurrentUserSharingCamera()) {
+                user_action_camera_text.setText(R.string.user_action_cam_turn_off);
+            }
         }
     }
 
@@ -175,28 +193,60 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         View userDialogView = factory.inflate(R.layout.popup_user, null);
         this.userDialog = new AlertDialog.Builder(this).create();
         this.userDialog.setView(userDialogView);
+
         userDialogView.findViewById(R.id.user_action_mic).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //your business logic
+                TextView text = (TextView) v.findViewById(R.id.user_action_mic_text);
+                if(text.getText().toString().equals(getResources().getString(R.string.user_action_mic_turn_on))) {
+                    TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), true);
+                    text.setText(R.string.user_action_mic_turn_off);
+                }
+                else {
+                    TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), false);
+                    text.setText(R.string.user_action_mic_turn_on);
+                }
                 userDialog.dismiss();
             }
         });
         userDialogView.findViewById(R.id.user_action_camera).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                TextView text = (TextView) v.findViewById(R.id.user_action_camera_text);
+                if(text.getText().toString().equals(getResources().getString(R.string.user_action_cam_turn_on))) {
+                    TokBoxClient.getInstance().publish(true, UserManager.getInstance().isCurrentUserSharingAudio());
+                    text.setText(R.string.user_action_cam_turn_off);
+                }
+                else {
+                    TokBoxClient.getInstance().publish(false, UserManager.getInstance().isCurrentUserSharingAudio());
+                    text.setText(R.string.user_action_cam_turn_on);
+                }
                 userDialog.dismiss();
             }
         });
         userDialogView.findViewById(R.id.user_action_rotate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                TextView text = (TextView) v.findViewById(R.id.user_action_rotate_text);
+                if(text.getText().toString().equals(getResources().getString(R.string.user_action_rotate_front_cam))) {
+
+                }
+                else {
+
+                }
                 userDialog.dismiss();
             }
         });
         userDialogView.findViewById(R.id.user_action_stop).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                TextView text = (TextView) v.findViewById(R.id.user_action_stop_text);
+                if(text.getText().toString().equals(getResources().getString(R.string.user_action_stop_your_stream))) {
+                    TokBoxClient.getInstance().unpublish();
+                }
+                else {
+
+                }
                 userDialog.dismiss();
             }
         });
@@ -258,8 +308,9 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
             this.finish();
         }
-        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) { // the (publisher) stream created event
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED || event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) { // the (publisher) stream created/destroyed events
             this.checkPublishPermission();
+            this.updateUserDialog();
         }
     }
 
@@ -282,10 +333,16 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     private void checkPublishPermission() {
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
             if(UserManager.getInstance().isCurrentUserSharingCamera()) {
-                // Fine...hide buttons
+                this.publish_camera.setVisibility(View.GONE);
+                this.publish_mic.setVisibility(View.GONE);
             }
             else if(UserManager.getInstance().isCurrentUserSharingAudio()) {
                 this.publish_camera.setVisibility(View.VISIBLE);
+                this.publish_mic.setVisibility(View.GONE);
+            }
+            else {
+                this.publish_camera.setVisibility(View.VISIBLE);
+                this.publish_mic.setVisibility(View.VISIBLE);
             }
         }
         else {
