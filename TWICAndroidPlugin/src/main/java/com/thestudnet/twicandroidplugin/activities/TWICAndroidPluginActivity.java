@@ -154,10 +154,12 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.publish_mic.setVisibility(View.GONE);
         }
         else {
+            // Update user local attribute
+            UserManager.getInstance().setAskPermission(UserManager.USER_LOCAL_ASKCAMERA, true, UserManager.getInstance().getCurrentUserId());
             // Signal "hgt_camera_authorization" via tokbox
             TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION);
             // Register "hangout.ask_camera_auth" event with API
-            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENTASKCAMERAAUTH);
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_ASK_CAMERA_AUTH);
         }
     }
 
@@ -167,10 +169,12 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.publish_mic.setVisibility(View.GONE);
         }
         else {
+            // Update user local attribute
+            UserManager.getInstance().setAskPermission(UserManager.USER_LOCAL_ASKMICROPHONE, true, UserManager.getInstance().getCurrentUserId());
             // Signal "hgt_microphone_authorization" via tokbox
             TokBoxClient.getInstance().broadcastSignal(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION);
             // Register "hangout.ask_microphone_auth" event with API
-            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENTASKMICROPHONEAUTH);
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_ASK_MICROPHONE_AUTH);
         }
     }
 

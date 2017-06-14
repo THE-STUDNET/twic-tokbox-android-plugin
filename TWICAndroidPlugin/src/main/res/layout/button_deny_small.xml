@@ -15,7 +15,7 @@
         android:background="@drawable/bg_button_deny_small"
         android:layout_centerVertical="true"
         android:gravity="center"
-        android:text="@string/action_request_kick"
+        android:text="@string/action_kick_user"
         android:textColor="@color/text_white"
         android:textSize="@dimen/text_medium"
         android:textStyle="bold"/>

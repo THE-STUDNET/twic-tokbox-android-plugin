@@ -34,17 +34,23 @@ public class APIClient {
     public static String TWIC_CONVERSATION_GETTOKENPATH     = "conversation.getToken";
     public static String TWIC_USER_GETPATH                  = "user.get";
     public static String TWIC_ACTIVITY_ADDPATH              = "activity.add";
+    public static String TWIC_STARTARCHIVEPATH              = "videoarchive.startRecord";
+    public static String TWIC_STOPARCHIVEPATH               = "videoarchive.stopRecord";
     
-    public static String HANGOUT_EVENTJOIN                  = "hangout.join";
-    public static String HANGOUT_EVENTLEAVE                 = "hangout.leave";
-    public static String HANGOUT_EVENTUSERSPOKE             = "hangout.userspoke";
-    public static String HANGOUT_EVENTSHARECAMERA           = "hangout.sharecamera";
-    public static String HANGOUT_EVENTSHAREMICROPHONE       = "hangout.sharemicrophone";
-    public static String HANGOUT_EVENTMESSAGE               = "hangout.message";
-    public static String HANGOUT_EVENTSTARTRECORD           = "hangout.startrecord";
-    public static String HANGOUT_EVENTSTOPRECORD            = "hangout.stoprecord";
-    public static String HANGOUT_EVENTASKMICROPHONEAUTH   = "hangout.ask_microphone_auth";
-    public static String HANGOUT_EVENTASKCAMERAAUTH       = "hangout.ask_camera_auth";
+    public static String HANGOUT_EVENT_JOIN                 = "hangout.join";
+    public static String HANGOUT_EVENT_LEAVE                = "hangout.leave";
+    public static String HANGOUT_EVENT_USERSPOKE            = "hangout.userspoke";
+    public static String HANGOUT_EVENT_SHARECAMERA          = "hangout.sharecamera";
+    public static String HANGOUT_EVENT_SHAREMICROPHONE      = "hangout.sharemicrophone";
+    public static String HANGOUT_EVENT_MESSAGE              = "hangout.message";
+    public static String HANGOUT_EVENT_STARTRECORD          = "hangout.startrecord";
+    public static String HANGOUT_EVENT_STOPRECORD           = "hangout.stoprecord";
+    public static String HANGOUT_EVENT_LAUNCH_USERCAMERA    = "hangout.launchusercamera";
+    public static String HANGOUT_EVENT_LAUNCH_USERMICROPHONE= "hangout.launchusermicrophone";
+    public static String HANGOUT_EVENT_LAUNC_HUSERSCREEN    = "hangout.launchuserscreen";
+    public static String HANGOUT_EVENT_ASK_MICROPHONE_AUTH  = "hangout.ask_microphone_auth";
+    public static String HANGOUT_EVENT_ASK_CAMERA_AUTH      = "hangout.ask_camera_auth";
+    public static String HANGOUT_EVENT_KICK_USER            = "hangout.kickuser";
 
     private JSONRPC2Session client;
 
@@ -341,14 +347,8 @@ public class APIClient {
 
                         // Add user in users list
                         UserManager.getInstance().addOrReplace(userId, response.getResult().toString());
-                        try {
-                            // Set user connection state to "connected"
-                            JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
-                            UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
-                        } catch (org.json.JSONException e) {
-                            Log.e(TAG, e.getLocalizedMessage());
-                            Log.e(TAG, e.getMessage());
-                        }
+                        // Set user connection state to "connected"
+                        UserManager.getInstance().setConnectionState(true, userId);
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
                     }
@@ -405,7 +405,7 @@ public class APIClient {
                     try {
                         param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
                         param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENTJOIN, param, requestID);
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_JOIN, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -444,7 +444,7 @@ public class APIClient {
                     try {
                         param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
                         param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENTLEAVE, param, requestID);
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_LEAVE, param, requestID);
                         // Send request
                         response = client.send(request);
                     }

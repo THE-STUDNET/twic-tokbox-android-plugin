@@ -43,7 +43,17 @@
     <string name="action_request_camera">Send a request for the Camera</string>
     <string name="action_request_mic">Send a request for the Microphone</string>
     <string name="action_request_screen">Send a request for the Screen Sharing</string>
-    <string name="action_request_kick">Kick %1$s from the live</string>
+
+    <string name="action_allow_user_to_share_his_camera">Allow user to share his camera</string>
+    <string name="action_ask_user_to_share_his_camera">Ask user to share his camera</string>
+    <string name="action_allow_user_to_share_his_microphone">Allow user to share his microphone</string>
+    <string name="action_ask_user_to_share_his_microphone">Ask user to share his microphone</string>
+    <string name="action_allow_user_to_share_his_screen">Allow user to share his screen</string>
+    <string name="action_ask_user_to_share_his_screen">Ask user to share his screen</string>
+    <string name="action_force_user_to_unpublish_screen">Force user to unpublish screen</string>
+    <string name="action_force_user_to_unpublish_camera">Force user to unpublish camera</string>
+    <string name="action_force_user_to_unpublish_microphone">Force user to unpublish microphone</string>
+    <string name="action_kick_user">Kick %1$s from the live</string>
 
     <string name="user_action_mic">Microphone</string>
     <string name="user_action_mic_turn_off">Turn Off</string>

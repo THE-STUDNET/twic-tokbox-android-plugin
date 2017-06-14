@@ -66,7 +66,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
         */
 
         LayoutInflater inflater = (LayoutInflater) this._context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if(childPosition < 3) {
+        if(child.getType() != UserAction.Type.KICK_USER) {
             convertView = inflater.inflate(R.layout.list_user_action, null);
         }
         else {
@@ -77,15 +77,17 @@ public class UsersAdapter extends BaseExpandableListAdapter {
         txtListChild.setText(child.getText());
 
         ImageView icon = (ImageView) convertView.findViewById(R.id.user_action);
-        if(child.getType() == 1) {
+        if(child.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_CAMERA || child.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_CAMERA || child.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_CAMERA) {
             icon.setImageResource(R.drawable.action_camera);
         }
-        else if(child.getType() == 2) {
+        else if(child.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_MICROPHONE || child.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_MICROPHONE || child.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_MICROPHONE) {
             icon.setImageResource(R.drawable.action_mic);
         }
-        else if(child.getType() == 3) {
+        else if(child.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_SCREEN || child.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_SCREEN || child.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_SCREEN) {
             icon.setImageResource(R.drawable.action_screen);
         }
+
+        convertView.setTag(child);
 
         return convertView;
     }
@@ -128,7 +130,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
         ImageView sharing_screen = (ImageView) convertView.findViewById(R.id.sharing_screen);
         ImageView expandablelistview_indicator = (ImageView) convertView.findViewById(R.id.expandablelistview_indicator);
         // Check user connection state
-        if("connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+        if(user.optBoolean(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, false)) {
             user_connection_state.setImageResource(R.color.action_green);
             // Check user streaming states
             if(UserManager.getInstance().isSharingAudio(user.optString(UserManager.USER_IDKEY, ""))) {
@@ -188,7 +190,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         JSONObject user = (JSONObject) getGroup(groupPosition);
-        if(!"connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+        if(!user.optBoolean(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, false)) {
             return false;
         }
         else {

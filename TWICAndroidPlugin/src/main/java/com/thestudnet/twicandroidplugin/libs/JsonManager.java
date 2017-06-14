@@ -63,11 +63,6 @@ public class JsonManager {
         }
         catch (JSONException error) {
         }
-        finally {
-            if(jsonObject == null) {
-                jsonObject = new JSONObject();
-            }
-        }
         return jsonObject;
     }
 
@@ -80,12 +75,7 @@ public class JsonManager {
     }
 
     public boolean containsKey(String key) {
-        for(String localKey : this.contentValues.keySet()) {
-            if(key.equals(localKey)) {
-                return true;
-            }
-        }
-        return false;
+        return this.contentValues.containsKey(key);
     }
 
     public void addOrReplace(String key, String value) {

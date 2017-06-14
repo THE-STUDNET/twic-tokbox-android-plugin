@@ -16,6 +16,9 @@ import com.thestudnet.twicandroidplugin.adapters.UsersAdapter;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
+import com.thestudnet.twicandroidplugin.managers.APIClient;
+import com.thestudnet.twicandroidplugin.managers.HangoutManager;
+import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
 import com.thestudnet.twicandroidplugin.managers.UserManager;
 
 import org.json.JSONObject;
@@ -94,10 +97,68 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
                 listDataHeader.add(user);
                 // Adding child data
                 List<UserAction> userActions = new ArrayList<UserAction>();
-                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_camera), 1));
-                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_mic), 2));
-                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_screen), 3));
-                userActions.add(new UserAction(this.getContext().getString(R.string.action_request_kick, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)), -1));
+
+                // Check if YOU have askDevice rights
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKDEVICE)) {
+                    // Check if user is streaming camera OR/AND microphone
+                    if(!UserManager.getInstance().isSharingCamera(userId)) {
+                        // check if tab User was asking for camera permission
+                        if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKCAMERA, userId)) {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_allow_user_to_share_his_camera), UserAction.Type.ALLOW_USER_TO_SHARE_HIS_CAMERA));
+                        }
+                        else {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_ask_user_to_share_his_camera), UserAction.Type.ASK_USER_TO_SHARE_HIS_CAMERA));
+                        }
+                    }
+                    if(!UserManager.getInstance().isSharingAudio(userId)) {
+                        // check if User was asking for microphone permission
+                        if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKMICROPHONE, userId)) {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_allow_user_to_share_his_microphone), UserAction.Type.ALLOW_USER_TO_SHARE_HIS_MICROPHONE));
+                        }
+                        else {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_ask_user_to_share_his_microphone), UserAction.Type.ASK_USER_TO_SHARE_HIS_MICROPHONE));
+                        }
+                    }
+                }
+
+                // Check if YOU have askScreen rights
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKSCREEN)) {
+                    // Check if user is streaming screen(s)
+                    if(!UserManager.getInstance().isSharingScreen(userId)) {
+                        // check if tab User was asking for screensharing permission
+                        if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKSCREEN, userId)) {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_allow_user_to_share_his_screen), UserAction.Type.ALLOW_USER_TO_SHARE_HIS_SCREEN));
+                        }
+                        else {
+                            userActions.add(new UserAction(this.getContext().getString(R.string.action_ask_user_to_share_his_screen), UserAction.Type.ASK_USER_TO_SHARE_HIS_SCREEN));
+                        }
+                    }
+                }
+
+                // Check if YOU have forceUnpublish rights
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONFORCEUNPUSBLISH)) {
+                    // Check if user is streaming screen(s)
+                    if(UserManager.getInstance().isSharingScreen(userId)) {
+                        // Display "Force user to unpublish screen(s)"
+                        userActions.add(new UserAction(this.getContext().getString(R.string.action_force_user_to_unpublish_screen), UserAction.Type.FORCE_USER_TO_UNPUBLISH_SCREEN));
+                    }
+                    // Check if user is streaming camera
+                    if(UserManager.getInstance().isSharingCamera(userId)) {
+                        // Display "Force user to unpublish camera"
+                        userActions.add(new UserAction(this.getContext().getString(R.string.action_force_user_to_unpublish_camera), UserAction.Type.FORCE_USER_TO_UNPUBLISH_CAMERA));
+                    }
+                    // Check if user is streaming microphone
+                    if(UserManager.getInstance().isSharingAudio(userId)) {
+                        // Display "Force user to unpublish audio"
+                        userActions.add(new UserAction(this.getContext().getString(R.string.action_force_user_to_unpublish_microphone), UserAction.Type.FORCE_USER_TO_UNPUBLISH_MICROPHONE));
+                    }
+                }
+
+                // Check if YOU has kick rights
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONKICK)) {
+                    userActions.add(new UserAction(this.getContext().getString(R.string.action_kick_user, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)), UserAction.Type.KICK_USER));
+                }
+
                 // Adding the whole group of data
                 listDataChild.put(userId, userActions);
             }
@@ -107,7 +168,7 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
     @Override
     public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
         JSONObject user = this.listDataHeader.get(groupPosition);
-        if(!"connected".equals(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected"))) {
+        if(!user.optBoolean(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, false)) {
             return true; // Consume the event
         }
         else {
@@ -117,8 +178,46 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
 
     @Override
     public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_BACK, null);
-        return false;
+        JSONObject user = this.listDataHeader.get(groupPosition);
+        String userId = user.optString(UserManager.USER_IDKEY, "");
+        UserAction action = (UserAction) view.getTag();
+        if(action.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_CAMERA || action.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_CAMERA) {
+            // Signal "hgt_camera_requested" via tokbox to user
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CAMERAREQUESTED, userId);
+            // Register "hangout.launchusercamera" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LAUNCH_USERCAMERA);
+        }
+        else if(action.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_MICROPHONE || action.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_MICROPHONE) {
+            // Signal "hgt_microphone_requested" via tokbox to user
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_MICROPHONEREQUESTED, userId);
+            // Register "hangout.launchusermicrophone" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LAUNCH_USERMICROPHONE);
+        }
+        else if(action.getType() == UserAction.Type.ALLOW_USER_TO_SHARE_HIS_SCREEN || action.getType() == UserAction.Type.ASK_USER_TO_SHARE_HIS_SCREEN) {
+            // Signal "hgt_screen_requested" via tokbox to user
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_SCREENREQUESTED, userId);
+            // Register "hangout.launchuserscreen" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LAUNC_HUSERSCREEN);
+        }
+        else if(action.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_SCREEN) {
+            // ForceUnpublish all user's screensharing streams via tokbox
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_FORCEUNPUBLISHSCREEN, userId);
+        }
+        else if(action.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_CAMERA) {
+            // ForceUnpublish all user's camera stream via tokbox
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_FORCEUNPUBLISHSTREAM, userId);
+        }
+        else if(action.getType() == UserAction.Type.FORCE_USER_TO_UNPUBLISH_MICROPHONE) {
+            // ForceUnpublish all user's microphone stream via tokbox
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_FORCEMUTESTREAM, userId);
+        }
+        else if(action.getType() == UserAction.Type.KICK_USER) {
+            // Force user to disconnect via tokbox
+            TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_KICKUSER, userId);
+            // Register "hangout.kickuser" event with API
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_KICK_USER);
+        }
+        return true;
     }
 
     @OnClick(R2.id.button_close) void close() {

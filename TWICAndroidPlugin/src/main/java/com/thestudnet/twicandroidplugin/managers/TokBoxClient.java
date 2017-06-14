@@ -44,6 +44,12 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public static String SIGNALTYPE_MICROPHONEREQUESTED           = "hgt_microphone_requested";
     public static String SIGNALTYPE_FORCEMUTESTREAM               = "hgt_force_mute_stream";
     public static String SIGNALTYPE_FORCEUNMUTESTREAM             = "hgt_force_unmute_stream";
+    public static String SIGNALTYPE_KICKUSER                      = "hgt_kick_user";
+    public static String SIGNALTYPE_FORCEUNPUBLISHSTREAM          = "hgt_force_unpublish_stream";
+    public static String SIGNALTYPE_FORCEUNPUBLISHSCREEN          = "hgt_force_unpublish_screen";
+    public static String SIGNALTYPE_SCREENREQUESTED               = "hgt_screen_requested";
+    public static String SIGNALTYPE_CANCELSCREENAUTHORIZATION     = "hgt_cancel_screen_authorization";
+
 
     private Session session;
     private AtomicBoolean isConnected = new AtomicBoolean(false);
@@ -248,15 +254,19 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                 // Check if user is YOU
                 if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
                     // NO
-                    try {
-                        // Set user connection state to connected
-                        JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "connected");
-                        UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
-                    }
-                    catch (JSONException e) {
-                        Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
-                    }
+                    // Set user connection state to "connected"
+                    UserManager.getInstance().setConnectionState(true, userId);
                     APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    // Check if YOU are asking for camera permission
+                    if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKCAMERA, UserManager.getInstance().getCurrentUserId())) {
+                        // Send tokbox signal "hgt_camera_authorization" to this user
+                        this.sendSignal(TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION, userId);
+                    }
+                    // Check if YOU are asking for micro permission
+                    if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKMICROPHONE, UserManager.getInstance().getCurrentUserId())) {
+                        // Send tokbox signal "hgt_microphone_authorization" to this user
+                        this.sendSignal(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION, userId);
+                    }
                     // TODO Add "User joined" notification message in conversation panel
                 }
             }
@@ -287,15 +297,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                 // Check if user is YOU
                 if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
                     // NO
-                    try {
-                        // Set user connection state to disconnected
-                        JSONObject updatedUser = UserManager.getInstance().getSettingsForKey(userId).put(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected");
-                        UserManager.getInstance().addOrReplace(userId, updatedUser.toString());
-                        // TODO : Unset user camera, microphone, screen permission demand
-                    }
-                    catch (JSONException e) {
-                        Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
-                    }
+                    // Set user connection state to "disconnected"
+                    UserManager.getInstance().setConnectionState(false, userId);
                     APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
 
                     // Add "User leave" notification message in conversation panel

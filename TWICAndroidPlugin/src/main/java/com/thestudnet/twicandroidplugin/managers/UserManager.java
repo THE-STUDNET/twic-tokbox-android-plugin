@@ -1,6 +1,7 @@
 package com.thestudnet.twicandroidplugin.managers;
 
 import android.content.ContentValues;
+import android.util.Log;
 
 import com.opentok.android.Publisher;
 import com.opentok.android.Stream;
@@ -15,6 +16,8 @@ import org.json.JSONObject;
  */
 
 public class UserManager extends JsonManager {
+
+    private static final String TAG = "com.thestudnet.twicandroidplugin.managers." + UserManager.class.getSimpleName();
 
     //API Attributes
     public static String USER_AMBASSADORKEY       = "ambassador";
@@ -122,6 +125,38 @@ public class UserManager extends JsonManager {
         return false;
     }
 
+    public void setConnectionState(boolean value, String forUserId) {
+        JSONObject user = this.getSettingsForKey(forUserId);
+        if(user != null) {
+            try {
+                user.put(USER_LOCAL_CONNECTIONSTATEKEY, value);
+                this.addOrReplace(forUserId, user.toString());
+            } catch (org.json.JSONException e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+        }
+    }
+
+    public void setAskPermission(String askPermission, boolean value, String forUserId) {
+        JSONObject user = this.getSettingsForKey(forUserId);
+        if(user != null) {
+            try {
+                user.put(askPermission, value);
+                this.addOrReplace(forUserId, user.toString());
+            } catch (org.json.JSONException e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+        }
+    }
+
+    public boolean isUserAskingPermission(String askPermission, String userId) {
+        JSONObject user = this.getSettingsForKey(userId);
+        if(user != null && user.has(askPermission)) {
+            return user.optBoolean(askPermission, false);
+        }
+        return false;
+    }
+
     /**
      *
      * @return the TOTAL number of users, except current user
@@ -142,10 +177,10 @@ public class UserManager extends JsonManager {
      */
     public int getTotalConnectedUsersCount() {
         int connectedCount = 0;
-        for(String userId : UserManager.getInstance().getKeys()) {
-            if (!userId.equals(UserManager.getInstance().getCurrentUserId())) {
-                JSONObject user = UserManager.getInstance().getSettingsForKey(userId);
-                if(user.optString(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, "disconnected").equals("connected")) {
+        for(String userId : this.getKeys()) {
+            if (!userId.equals(this.getCurrentUserId())) {
+                JSONObject user = this.getSettingsForKey(userId);
+                if(user.optBoolean(UserManager.USER_LOCAL_CONNECTIONSTATEKEY, false)) {
                     connectedCount++;
                 }
             }
