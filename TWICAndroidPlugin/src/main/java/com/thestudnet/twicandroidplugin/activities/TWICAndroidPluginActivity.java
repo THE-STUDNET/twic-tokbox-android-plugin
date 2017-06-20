@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.opentok.android.Publisher;
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.R2;
@@ -68,6 +69,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     private ImageView publish_camera;
     private ImageView publish_mic;
 
+    private ImageView button_record;
+
     private ArrayList<String> usersDemands;
 
     @Override
@@ -79,6 +82,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
         this.publish_camera = (ImageView) this.findViewById(R.id.publish_camera);
         this.publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
+
+        this.button_record = (ImageView) this.findViewById(R.id.button_record);
 
         this.updateUsersCount();
 
@@ -160,6 +165,31 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         // TODO - Remove user from Firebase hangout connected list
 
         TokBoxClient.getInstance().disconnectSession();
+    }
+
+    @OnClick(R2.id.button_record) void onButtonRecordClicked() {
+        // Check Archive permission
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONARCHIVE) == true) {
+            // Check recording state
+            if(TokBoxClient.getInstance().isArchiving.get()) {
+                // Recording ON
+                // Stop hangout recording by calling API
+                APIClient.getInstance().stopArchiving();
+                // Register "hangout.stoprecord" event with API
+                APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_STOPRECORD);
+                // Immediately update button state
+                this.button_record.setImageResource(R.drawable.record_off);
+            }
+            else {
+                // Recording OFF
+                // Start hangout recording by calling API
+                APIClient.getInstance().startArchiving();
+                // Register "hangout.startrecord" event with API
+                APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_STARTRECORD);
+                // Immediately update button state
+                this.button_record.setImageResource(R.drawable.record_on);
+            }
+        }
     }
 
     @OnClick(R2.id.button_users) void onButtonUsersClicked() {
@@ -255,12 +285,23 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         userDialogView.findViewById(R.id.user_action_rotate).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
                 TextView text = (TextView) v.findViewById(R.id.user_action_rotate_text);
-                if(text.getText().toString().equals(getResources().getString(R.string.user_action_rotate_front_cam))) {
-                    // TODO Rotate camera ?
+                Publisher publisher = TokBoxClient.getInstance().getPublisher();
+                if(publisher != null) {
+                    if(text.getText().toString().equals(getResources().getString(R.string.user_action_rotate_front_cam))) {
+                        // TODO Rotate camera ?
+                        TokBoxClient.getInstance().getPublisher().swapCamera();
+                    }
+                    else {
+                        // TODO Rotate camera ?
+
+                    }
                 }
-                else {
-                    // TODO Rotate camera ?
+                */
+                Publisher publisher = TokBoxClient.getInstance().getPublisher();
+                if(publisher != null) {
+                    publisher.cycleCamera();
                 }
                 userDialog.dismiss();
             }
@@ -474,6 +515,30 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         }
     }
 
+    private void checkArchivePermission() {
+        // Check Archive permission
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONARCHIVE) == true) {
+            // TRUE
+            // Display "Record" state
+            this.updateRecordButton();
+        }
+        else {
+            // FALSE
+            // Display "Record" state
+            this.updateRecordButton();
+        }
+    }
+
+    private void updateRecordButton() {
+        if(TokBoxClient.getInstance().isArchiving.get()) {
+            // Archiving
+            this.button_record.setImageResource(R.drawable.record_on);
+        }
+        else {
+            this.button_record.setImageResource(R.drawable.record_off);
+        }
+    }
+
     @Subscribe
     public void onFragmentInteraction(FragmentInteraction.OnFragmentInteractionEvent event) {
         if(event.getType() == FragmentInteraction.Type.ON_BACK) {
@@ -527,6 +592,9 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
                 this.checkPublishPermission();
             }
             // else wait for the (publisher) stream created event
+
+            // Check Archive permission
+            this.checkArchivePermission();
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
             Log.d(TAG, "ON_SESSION_DISCONNECTED");
@@ -536,6 +604,22 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED || event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) { // the (publisher) stream created/destroyed events
             this.checkPublishPermission();
             this.updateUserDialog();
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_ARCHIVE_STARTED) {
+            Log.d(TAG, "ON_ARCHIVE_STARTED");
+
+            // Set "Record" icon state to "Recording"
+            this.updateRecordButton();
+
+            // TODO Add "Recording started" notification message in conversation panel
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_ARCHIVE_STOPPED) {
+            Log.d(TAG, "ON_ARCHIVE_STOPPED");
+
+            // Set "Record" icon state to "Not recording"
+            this.updateRecordButton();
+
+            // TODO Add "Recording stopped" notification message in conversation panel
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_SIGNAL_RECEIVED) {
             Log.d(TAG, "ON_SIGNAL_RECEIVED");

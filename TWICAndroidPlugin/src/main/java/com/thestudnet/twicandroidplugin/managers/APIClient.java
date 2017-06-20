@@ -21,6 +21,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.R.attr.mode;
+
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
@@ -351,6 +353,78 @@ public class APIClient {
                         UserManager.getInstance().setConnectionState(true, userId);
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void startArchiving() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("name", "hangout");
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_STARTRECORD, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in startArchiving");
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void stopArchiving() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("name", "hangout");
+                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_STOPRECORD, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in stopArchiving");
                     }
                 }
             }.start();

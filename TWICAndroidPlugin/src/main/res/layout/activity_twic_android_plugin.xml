@@ -55,6 +55,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:id="@+id/button_record"
                     android:layout_gravity="center"
                     android:src="@drawable/record_off" />
 

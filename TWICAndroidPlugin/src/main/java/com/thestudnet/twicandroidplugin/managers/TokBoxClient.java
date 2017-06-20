@@ -35,7 +35,7 @@ import static android.R.id.list;
  * Created by Baptiste PHILIBERT on 27/04/2017.
  */
 
-public class TokBoxClient implements Session.SessionListener, Session.ConnectionListener, Publisher.PublisherListener, Subscriber.VideoListener, Session.SignalListener {
+public class TokBoxClient implements Session.SessionListener, Session.ConnectionListener, Publisher.PublisherListener, Subscriber.VideoListener, Session.SignalListener, Session.ArchiveListener {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin.managers." + TokBoxClient.class.getSimpleName();
 
@@ -56,6 +56,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
 
     private Session session;
     private AtomicBoolean isConnected = new AtomicBoolean(false);
+
+    public AtomicBoolean isArchiving = new AtomicBoolean(false);
 
     public Publisher getPublisher() {
         return publisher;
@@ -249,6 +251,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
         }
 
+        // CHECK USER
         if(user != null && user.has("id") && !"".equals(user.optString("id"))) {
             String userId = user.optString("id");
             // Check if user is in users list
@@ -279,6 +282,25 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                 APIClient.getInstance().getNewUsers(userId);
             }
         }
+
+        // CHECK ARCHIVE
+        // Check hangout "record" option
+        JSONObject options = HangoutManager.getInstance().getSettingsForKey(HangoutManager.HANGOUT_OPTIONSKEY);
+        if(options.optBoolean("record", false)) {
+            // TRUE
+            // Check if hangout "nb_user_autorecord" is defined
+            int nb_user_autorecord = options.optInt("record", -1);
+            if(nb_user_autorecord != -1) {
+                // TRUE
+                // Check if "nb_user_autorecord" == users connected count
+                if(nb_user_autorecord == UserManager.getInstance().getTotalConnectedUsersCount()) {
+                    // TRUE
+                    // Start hangout recording by calling API
+                    APIClient.getInstance().startArchiving();
+                }
+            }
+        }
+
     }
 
     @Override
@@ -464,6 +486,30 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     }
 
     /**************** END SUBSCRIBERS ****************/
+
+
+
+
+    /**************** ARCHIVE ****************/
+    @Override
+    public void onArchiveStarted(Session session, String archiveId, String archiveName) {
+        // Set archiving flag
+        this.isArchiving.set(true);
+        // Throw event
+        TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_ARCHIVE_STARTED, null);
+    }
+
+    @Override
+    public void onArchiveStopped(Session session, String archiveId) {
+        // Set archiving flag
+        this.isArchiving.set(false);
+        // Throw event
+        TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_ARCHIVE_STOPPED, null);
+    }
+
+    /**************** END ARCHIVE ****************/
+
+
 
 
     /**************** SIGNALING ****************/

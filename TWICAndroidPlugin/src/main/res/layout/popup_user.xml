@@ -128,7 +128,7 @@
                 android:layout_marginBottom="@dimen/element_margin"
                 android:gravity="center"
                 android:lines="1"
-                android:text="@string/user_action_rotate_front_cam"
+                android:text="@string/user_action_rotate_cam"
                 android:textColor="@color/text_grey"
                 android:textSize="@dimen/text_small" />
 

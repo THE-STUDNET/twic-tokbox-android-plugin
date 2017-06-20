@@ -62,6 +62,8 @@
     <string name="user_action_cam_turn_off">Turn Off</string>
     <string name="user_action_cam_turn_on">Turn On</string>
     <string name="user_action_rotate">Rotate</string>
+    <string name="user_action_rotate_cam">Your Camera</string>
+    <string name="user_action_rotate_rear_cam">Rear Camera</string>
     <string name="user_action_rotate_front_cam">Front Camera</string>
     <string name="user_action_stop">Stop</string>
     <string name="user_action_stop_your_stream">Your Stream</string>
