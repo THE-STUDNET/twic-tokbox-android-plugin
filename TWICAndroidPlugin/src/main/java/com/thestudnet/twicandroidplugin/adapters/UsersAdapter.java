@@ -70,7 +70,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.list_user_action, null);
         }
         else {
-            convertView = inflater.inflate(R.layout.button_deny_small, null);
+            convertView = inflater.inflate(R.layout.button_deny, null);
         }
 
         TextView txtListChild = (TextView) convertView.findViewById(R.id.user_action_text);

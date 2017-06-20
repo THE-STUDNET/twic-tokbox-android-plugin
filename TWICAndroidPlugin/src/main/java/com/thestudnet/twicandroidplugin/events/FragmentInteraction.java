@@ -13,7 +13,8 @@ public class FragmentInteraction {
     public enum Type {
         ON_BACK(0),
         ON_SHOW_USER_DIALOG(1),
-        ON_SHOW_VIDEO_DETAILS_FRAGMENT(2);
+        ON_SHOW_VIDEO_DETAILS_FRAGMENT(2),
+        ON_USER_DEMAND_REMOVED(3);
 
         private int value;
 

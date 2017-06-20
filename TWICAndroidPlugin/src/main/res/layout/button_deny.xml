@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:id="@+id/button_deny"
     android:orientation="vertical"
-    android:clickable="true" >
+    android:padding="@dimen/element_margin_large"
+    android:layout_margin="@dimen/element_margin_large">
 
     <me.grantland.widget.AutofitTextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/user_action_text"
         android:padding="@dimen/element_margin_large"
         android:background="@drawable/bg_button_deny_small"
         android:layout_centerVertical="true"
         android:gravity="center"
-        android:text="@string/button_deny"
+        android:text="@string/action_kick_user"
         android:textColor="@color/text_white"
         android:textSize="@dimen/text_medium"
-        android:textStyle="bold"
-        android:textAllCaps="true"/>
+        android:textStyle="bold"/>
 
 </LinearLayout>

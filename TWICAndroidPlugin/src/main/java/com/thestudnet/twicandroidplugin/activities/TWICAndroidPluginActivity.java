@@ -1,9 +1,12 @@
 package com.thestudnet.twicandroidplugin.activities;
 
 import android.Manifest;
+import android.content.DialogInterface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.R2;
@@ -21,16 +25,21 @@ import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.events.SocketIoInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
+import com.thestudnet.twicandroidplugin.fragments.UsersDemandsDialogFragment;
 import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.HangoutManager;
+import com.thestudnet.twicandroidplugin.managers.SettingsManager;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
 import com.thestudnet.twicandroidplugin.managers.UserManager;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -52,14 +61,21 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     private static final int RC_VIDEO_APP_PERM = 124;
 
     private AlertDialog userDialog;
+    private AlertDialog confirmDialog;
+    private UsersDemandsDialogFragment demandDialog;
+    private AlertDialog cancelDialog;
 
     private ImageView publish_camera;
     private ImageView publish_mic;
+
+    private ArrayList<String> usersDemands;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_twic_android_plugin);
+
+        this.usersDemands = new ArrayList<>();
 
         this.publish_camera = (ImageView) this.findViewById(R.id.publish_camera);
         this.publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
@@ -73,6 +89,9 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.getSupportFragmentManager().addOnBackStackChangedListener(this);
 
         this.buildUserDialog();
+        this.buildConfirmDialog();
+        this.buildUsersDemandsDialog();
+        this.buildCancelDialog();
 
         this.requestPermissions();
     }
@@ -178,6 +197,11 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         }
     }
 
+    @OnClick(R2.id.user_demand) void onUsersDemandsClicked() {
+        this.demandDialog.updateData(this.usersDemands);
+        this.demandDialog.show(getSupportFragmentManager(), "");
+    }
+
     private void updateUserDialog() {
         if(this.userDialog != null) {
             TextView user_action_mic_text = (TextView) this.userDialog.findViewById(R.id.user_action_mic_text);
@@ -233,10 +257,10 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             public void onClick(View v) {
                 TextView text = (TextView) v.findViewById(R.id.user_action_rotate_text);
                 if(text.getText().toString().equals(getResources().getString(R.string.user_action_rotate_front_cam))) {
-
+                    // TODO Rotate camera ?
                 }
                 else {
-
+                    // TODO Rotate camera ?
                 }
                 userDialog.dismiss();
             }
@@ -256,6 +280,160 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         });
     }
 
+    /**
+     * 1 = camera, 2 = mic
+     * @param type
+     */
+    private void updateConfirmDialog(int type) {
+        if(type == 1) {
+            // Publish YOUR camera via tokbox
+            ((ImageView) this.confirmDialog.findViewById(R.id.demand_icon)).setImageResource(R.drawable.user_action_camera);
+            ((TextView) this.confirmDialog.findViewById(R.id.demand_text)).setText(R.string.confirm_text_camera);
+            this.confirmDialog.findViewById(R.id.demand_popup).setTag(type);
+        }
+        else if(type == 2) {
+            // Publish YOUR microphone via tokbox
+            ((ImageView) this.confirmDialog.findViewById(R.id.demand_icon)).setImageResource(R.drawable.user_action_mic);
+            ((TextView) this.confirmDialog.findViewById(R.id.demand_text)).setText(R.string.confirm_text_microphone);
+            this.confirmDialog.findViewById(R.id.demand_popup).setTag(type);
+        }
+    }
+
+    private void buildConfirmDialog() {
+        LayoutInflater factory = LayoutInflater.from(this);
+        View confirmDialogView = factory.inflate(R.layout.popup_demand, null);
+        this.confirmDialog = new AlertDialog.Builder(this).create();
+        this.confirmDialog.setView(confirmDialogView);
+
+        confirmDialogView.findViewById(R.id.button_accept).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if((int) confirmDialog.findViewById(R.id.demand_popup).getTag() == 1) {
+                    // Publish YOUR camera via tokbox
+                    TokBoxClient.getInstance().publish(true, UserManager.getInstance().isCurrentUserSharingAudio());
+                }
+                else if((int) confirmDialog.findViewById(R.id.demand_popup).getTag() == 2) {
+                    // Publish YOUR microphone via tokbox
+                    TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), true);
+                }
+                confirmDialog.dismiss();
+            }
+        });
+        confirmDialogView.findViewById(R.id.button_deny).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmDialog.dismiss();
+            }
+        });
+    }
+
+    private void updateUsersDemands() {
+        if(this.usersDemands.size() == 0) {
+            this.findViewById(R.id.user_demand).setVisibility(View.INVISIBLE);
+        }
+        else if(this.usersDemands.size() == 1) {
+            this.findViewById(R.id.user_demand).setVisibility(View.VISIBLE);
+
+            ImageView demand_type = (ImageView) this.findViewById(R.id.demand_type);
+            if(this.usersDemands.get(0).split("_#_")[0].contains("camera")) {
+                demand_type.setImageResource(R.drawable.demand_camera);
+            }
+            else {
+                demand_type.setImageResource(R.drawable.demand_mic);
+            }
+            demand_type.setVisibility(View.VISIBLE);
+
+            this.findViewById(R.id.demand_count).setVisibility(View.INVISIBLE);
+
+            JSONObject user = UserManager.getInstance().getSettingsForKey(this.usersDemands.get(0).split("_#_")[1]);
+            ImageView demand_avatar = (ImageView) this.findViewById(R.id.demand_avatar);
+            JSONObject dsmSettings = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_DMSKEY);
+            if(dsmSettings != null) {
+                JSONObject pathKeySettings = dsmSettings.optJSONObject(SettingsManager.SETTINGS_PATHSKEY);
+                if(pathKeySettings != null) {
+                    String url = dsmSettings.optString(SettingsManager.SETTINGS_PROTOCOLKEY, "")
+                            + "://"
+                            + dsmSettings.optString(SettingsManager.SETTINGS_DOMAINKEY, "")
+                            + "/"
+                            + pathKeySettings.optString("datas", "")
+                            + "/"
+                            + user.optString(UserManager.USER_AVATARKEY, "");
+                    Glide.with(this).load(url).fitCenter().into(demand_avatar);
+                }
+            }
+        }
+        else if(this.usersDemands.size() > 1) {
+            this.findViewById(R.id.user_demand).setVisibility(View.VISIBLE);
+            this.findViewById(R.id.demand_type).setVisibility(View.INVISIBLE);
+            TextView demand_count = (TextView) this.findViewById(R.id.demand_count);
+            demand_count.setVisibility(View.VISIBLE);
+            demand_count.setText(String.valueOf(this.usersDemands.size()));
+
+            ImageView demand_avatar = (ImageView) this.findViewById(R.id.demand_avatar);
+            Glide.with(this).load("").fitCenter().placeholder(new ColorDrawable(ContextCompat.getColor(this, R.color.background_white))).into(demand_avatar);
+        }
+    }
+
+    private void buildUsersDemandsDialog() {
+
+        this.demandDialog = new UsersDemandsDialogFragment();
+
+
+        /*
+        LayoutInflater factory = LayoutInflater.from(this);
+
+        View demandDialogView = factory.inflate(R.layout.popup_demand_container, null);
+
+        this.demandDialog = new AlertDialog.Builder(this).create();
+        this.demandDialog.setView(demandDialogView);
+
+        this.demandDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+
+            }
+        });
+        */
+
+
+
+        /*
+        LinearLayout container = (LinearLayout) demandDialogView.findViewById(R.id.scrollview_container);
+
+        container.addView(factory.inflate(R.layout.popup_demand, null));
+        container.addView(factory.inflate(R.layout.popup_demand, null));
+        container.addView(factory.inflate(R.layout.popup_demand, null));
+
+        this.demandDialog = new AlertDialog.Builder(this).create();
+        this.demandDialog.setView(demandDialogView);
+
+        demandDialogView.findViewById(R.id.button_deny).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                demandDialog.dismiss();
+            }
+        });
+
+        demandDialogView.findViewById(R.id.button_accept).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                demandDialog.dismiss();
+            }
+        });
+        */
+    }
+
+    private void buildCancelDialog() {
+        this.cancelDialog = new AlertDialog.Builder(this).create();
+        this.cancelDialog.setMessage(getResources().getString(R.string.cancel_text));
+        this.cancelDialog.setButton(DialogInterface.BUTTON_NEUTRAL, getResources().getString(R.string.button_ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                cancelDialog.dismiss();
+            }
+        });
+    }
+
     private void showUsersActivity() {
         // Hide header
         this.findViewById(R.id.header).setVisibility(View.GONE);
@@ -267,6 +445,33 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
                 .replace(R.id.container, UsersFragment.newInstance())
                 .addToBackStack(null)
                 .commit();
+    }
+
+    private void updateUsersCount() {
+        ((TextView) this.findViewById(R.id.users_count)).setText(getResources().getString(R.string.users_count_text, String.valueOf(UserManager.getInstance().getTotalConnectedUsersCount()), String.valueOf(UserManager.getInstance().getTotalUsersCount())));
+    }
+
+    private void checkPublishPermission() {
+        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
+            if(UserManager.getInstance().isCurrentUserSharingCamera()) {
+                this.publish_camera.setVisibility(View.GONE);
+                this.publish_mic.setVisibility(View.GONE);
+            }
+            else if(UserManager.getInstance().isCurrentUserSharingAudio()) {
+                this.publish_camera.setVisibility(View.VISIBLE);
+                this.publish_mic.setVisibility(View.GONE);
+            }
+            else {
+                this.publish_camera.setVisibility(View.VISIBLE);
+                this.publish_mic.setVisibility(View.VISIBLE);
+            }
+        }
+        else {
+            this.publish_camera.setImageResource(R.drawable.ask_publish_camera);
+            this.publish_camera.setVisibility(View.VISIBLE);
+            this.publish_mic.setImageResource(R.drawable.ask_publish_mic);
+            this.publish_mic.setVisibility(View.VISIBLE);
+        }
     }
 
     @Subscribe
@@ -284,6 +489,22 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
                     .replace(R.id.container, VideoDetailFragment.newInstance(((GenericModel) event.getData().get(0)).getContentValue("stream_id")))
                     .addToBackStack(null)
                     .commit();
+        }
+        else if(event.getType() == FragmentInteraction.Type.ON_USER_DEMAND_REMOVED) {
+            String demand = (String) event.getData().get(0);
+            if(this.usersDemands.contains(demand)) {
+                this.usersDemands.remove(demand);
+                // Update the top right icon
+                this.updateUsersDemands();
+                // Update the demandDialog data
+                this.demandDialog.updateData(this.usersDemands);
+                // Refresh the demandDialog
+                this.demandDialog.refreshData();
+                // Close if empty !
+                if(this.usersDemands.size() == 0) {
+                    this.demandDialog.dismiss();
+                }
+            }
         }
     }
 
@@ -316,6 +537,127 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.checkPublishPermission();
             this.updateUserDialog();
         }
+        else if(event.getType() == TokBoxInteraction.Type.ON_SIGNAL_RECEIVED) {
+            Log.d(TAG, "ON_SIGNAL_RECEIVED");
+
+            if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION)) {
+                // check if YOU have "askDevice" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKDEVICE)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_CAMERAAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(!this.usersDemands.contains(demand)) {
+                        this.usersDemands.add(demand);
+                        // Show on interface User camera sharing demand
+                        this.updateUsersDemands();
+                    }
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CANCELCAMERAAUTHORIZATION)) {
+                // check if YOU have "askDevice" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKDEVICE)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_CANCELCAMERAAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(this.usersDemands.contains(demand)) {
+                        this.usersDemands.remove(demand);
+                        // Hide User camera sharing demand
+                        this.updateUsersDemands();
+                    }
+                }
+                // check if YOU were asking for permission
+                if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKCAMERA, UserManager.getInstance().getCurrentUserId())) {
+                    // TRUE
+                    // Notify user that his request has been declined
+                    this.cancelDialog.show();
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION)) {
+                // check if YOU have "askDevice" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKDEVICE)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(this.usersDemands.contains(demand)) {
+                        this.usersDemands.remove(demand);
+                        // Hide User microphone sharing demand
+                        this.updateUsersDemands();
+                    }
+                }
+                // check if YOU were asking for permission
+                if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKMICROPHONE, UserManager.getInstance().getCurrentUserId())) {
+                    // TRUE
+                    // Notify user that his request has been declined
+                    this.cancelDialog.show();
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CANCELSCREENAUTHORIZATION)) {
+                // check if YOU have "askScreen" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKSCREEN)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_CANCELSCREENAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(this.usersDemands.contains(demand)) {
+                        this.usersDemands.remove(demand);
+                        // Hide User screen sharing demand
+                        this.updateUsersDemands();
+                    }
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION)) {
+                // check if YOU have "askDevice" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKDEVICE)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(!this.usersDemands.contains(demand)) {
+                        this.usersDemands.add(demand);
+                        // Show on interface User microphone sharing demand
+                        this.updateUsersDemands();
+                    }
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CAMERAREQUESTED)) {
+                // check if YOU were asking for permission
+                if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKCAMERA, UserManager.getInstance().getCurrentUserId())) {
+                    // TRUE
+                    UserManager.getInstance().setAskPermission(UserManager.USER_LOCAL_ASKCAMERA, false, UserManager.getInstance().getCurrentUserId());
+                    // Publish User camera via tokbox
+                    TokBoxClient.getInstance().publish(true, UserManager.getInstance().isCurrentUserSharingAudio());
+                    // Signal "hgt_cancel_camera_authorization" event via tokbox for user ID
+                    TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CANCELCAMERAAUTHORIZATION, UserManager.getInstance().getCurrentUserId());
+                }
+                else {
+                    // FALSE
+                    // Show popup to Accept / Decline sharing camera demand
+                    this.confirmDialog.show();
+                    this.updateConfirmDialog(1);
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_MICROPHONEREQUESTED)) {
+                // check if YOU were asking for permission
+                if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKMICROPHONE, UserManager.getInstance().getCurrentUserId())) {
+                    // TRUE
+                    UserManager.getInstance().setAskPermission(UserManager.USER_LOCAL_ASKMICROPHONE, false, UserManager.getInstance().getCurrentUserId());
+                    // Publish User microphone via tokbox
+                    TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), true);
+                    // Signal "hgt_cancel_microphone_authorization" event via tokbox for user ID
+                    TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION, UserManager.getInstance().getCurrentUserId());
+                }
+                else {
+                    // FALSE
+                    // Show popup to Accept / Decline sharing microphone demand
+                    this.confirmDialog.show();
+                    this.updateConfirmDialog(2);
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_FORCEMUTESTREAM)) {
+                // Mute stream corresponding to event streamId
+                TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), false);
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_FORCEUNMUTESTREAM)) {
+                // Unmute stream corresponding to event streamId
+                TokBoxClient.getInstance().publish(UserManager.getInstance().isCurrentUserSharingCamera(), true);
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_FORCEUNPUBLISHSTREAM)) {
+                TokBoxClient.getInstance().publish(false, UserManager.getInstance().isCurrentUserSharingAudio());
+            }
+        }
     }
 
     @Subscribe
@@ -327,33 +669,6 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.updateUsersCount();
 
             // TODO Add "User joined" notification message in conversation panel
-        }
-    }
-
-    private void updateUsersCount() {
-        ((TextView) this.findViewById(R.id.users_count)).setText(getResources().getString(R.string.users_count_text, String.valueOf(UserManager.getInstance().getTotalConnectedUsersCount()), String.valueOf(UserManager.getInstance().getTotalUsersCount())));
-    }
-
-    private void checkPublishPermission() {
-        if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
-            if(UserManager.getInstance().isCurrentUserSharingCamera()) {
-                this.publish_camera.setVisibility(View.GONE);
-                this.publish_mic.setVisibility(View.GONE);
-            }
-            else if(UserManager.getInstance().isCurrentUserSharingAudio()) {
-                this.publish_camera.setVisibility(View.VISIBLE);
-                this.publish_mic.setVisibility(View.GONE);
-            }
-            else {
-                this.publish_camera.setVisibility(View.VISIBLE);
-                this.publish_mic.setVisibility(View.VISIBLE);
-            }
-        }
-        else {
-            this.publish_camera.setImageResource(R.drawable.ask_publish_camera);
-            this.publish_camera.setVisibility(View.VISIBLE);
-            this.publish_mic.setImageResource(R.drawable.ask_publish_mic);
-            this.publish_mic.setVisibility(View.VISIBLE);
         }
     }
 

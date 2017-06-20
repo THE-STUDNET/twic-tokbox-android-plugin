@@ -66,4 +66,16 @@
     <string name="user_action_stop">Stop</string>
     <string name="user_action_stop_your_stream">Your Stream</string>
 
+    <string name="demand_text_camera">Allow %1$s to share his camera</string>
+    <string name="demand_text_microphone">Allow %1$s to share his microphone</string>
+
+    <string name="confirm_text_camera">Do you want to share your camera ?</string>
+    <string name="confirm_text_microphone">Do you want to share your microphone ?</string>
+
+    <string name="cancel_text">Your request was declined</string>
+
+    <string name="button_deny">Decline</string>
+    <string name="button_accept">Accept</string>
+    <string name="button_ok">Ok</string>
+
 </resources>

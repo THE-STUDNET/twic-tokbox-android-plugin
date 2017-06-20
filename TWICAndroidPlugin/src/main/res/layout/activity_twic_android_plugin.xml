@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -13,81 +14,142 @@
 
     </LinearLayout>
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/header"
-        android:orientation="horizontal"
-        android:padding="@dimen/activity_content_margin">
+        android:orientation="vertical">
 
         <FrameLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/button_exit"
-            android:layout_gravity="left|top"
-            android:onClick="onClick"
-            android:background="@drawable/bg_clickable_element"
-            android:minHeight="@dimen/element_min_height"
-            android:minWidth="@dimen/element_min_width"
-            android:visibility="invisible">
+            android:orientation="horizontal"
+            android:padding="@dimen/activity_content_margin">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:src="@drawable/exit" />
-
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|top"
-            android:minHeight="@dimen/element_min_height"
-            android:minWidth="@dimen/element_min_width">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:src="@drawable/record_off" />
-
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|right"
-            android:minHeight="@dimen/element_min_height"
-            android:minWidth="@dimen/element_min_width">
-
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:id="@+id/button_exit"
+                android:layout_gravity="left|top"
+                android:onClick="onClick"
+                android:background="@drawable/bg_clickable_element"
+                android:minHeight="@dimen/element_min_height"
+                android:minWidth="@dimen/element_min_width"
+                android:visibility="invisible">
 
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:id="@+id/publish_camera"
-                    android:layout_marginBottom="@dimen/element_margin"
                     android:layout_gravity="center"
-                    android:src="@drawable/publish_camera"
-                    android:visibility="gone"/>
+                    android:src="@drawable/exit" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|top"
+                android:minHeight="@dimen/element_min_height"
+                android:minWidth="@dimen/element_min_width">
 
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:id="@+id/publish_mic"
                     android:layout_gravity="center"
-                    android:src="@drawable/publish_mic"
-                    android:visibility="gone"/>
+                    android:src="@drawable/record_off" />
 
-            </LinearLayout>
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|right"
+                android:minHeight="@dimen/element_min_height"
+                android:minWidth="@dimen/element_min_width">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:id="@+id/publish_camera"
+                        android:layout_marginBottom="@dimen/element_margin"
+                        android:layout_gravity="center"
+                        android:src="@drawable/publish_camera"
+                        android:visibility="gone"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:id="@+id/publish_mic"
+                        android:layout_gravity="center"
+                        android:src="@drawable/publish_mic"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
 
         </FrameLayout>
 
-    </FrameLayout>
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/user_demand"
+            android:visibility="invisible"
+            android:padding="@dimen/activity_content_margin"
+            android:layout_centerVertical="true"
+            android:layout_gravity="right|center_vertical">
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/demand_avatar"
+                android:layout_width="@dimen/demand_avatar"
+                android:layout_height="@dimen/demand_avatar"
+                android:paddingLeft="@dimen/demand_margin"
+                android:paddingBottom="@dimen/demand_margin"
+                android:layout_centerVertical="true"
+                android:src="@color/background_white"
+                android:scaleType="fitCenter"
+                app:riv_border_color="@color/info_blue"
+                app:riv_border_width="2dip"
+                app:riv_corner_radius="30dip"
+                app:riv_mutate_background="true"
+                app:riv_tile_mode="repeat"
+                app:riv_oval="false" />
+
+            <me.grantland.widget.AutofitTextView
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:id="@+id/demand_count"
+                android:paddingLeft="@dimen/demand_margin"
+                android:paddingBottom="@dimen/demand_margin"
+                android:layout_gravity="center"
+                android:text="2"
+                android:textColor="@color/info_blue"
+                android:textSize="@dimen/text_medium"
+                android:visibility="invisible"/>
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/demand_type"
+                android:layout_width="@dimen/demand_type"
+                android:layout_height="@dimen/demand_type"
+                android:layout_centerVertical="true"
+                android:layout_gravity="bottom|left"
+                android:background="@color/info_blue"
+                android:scaleType="center"
+                android:src="@drawable/demand_camera"
+                app:riv_border_color="@android:color/transparent"
+                app:riv_border_width="0dip"
+                app:riv_corner_radius="20dip"
+                app:riv_mutate_background="true"
+                app:riv_oval="false" />
+
+        </FrameLayout>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

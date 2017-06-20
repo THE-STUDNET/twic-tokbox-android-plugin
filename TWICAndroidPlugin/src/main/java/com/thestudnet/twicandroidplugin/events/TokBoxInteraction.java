@@ -16,7 +16,8 @@ public class TokBoxInteraction {
         ON_SUBSCRIBER_REMOVED(2),
         ON_PUBLISHER_REMOVED(3),
         ON_SESSION_DISCONNECTED(4),
-        ON_SESSION_CONNECTED(5);
+        ON_SESSION_CONNECTED(5),
+        ON_SIGNAL_RECEIVED(6);
 
         private int value;
 

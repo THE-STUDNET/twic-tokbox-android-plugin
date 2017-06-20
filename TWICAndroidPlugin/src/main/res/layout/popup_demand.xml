@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="200dp"
+    android:id="@+id/demand_popup"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/background_white"
+    android:layout_margin="70dp"
+    android:padding="@dimen/popup_padding">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/demand_icon"
+        android:src="@drawable/user_action_mic"
+        android:layout_marginBottom="@dimen/element_margin"/>
+
+    <me.grantland.widget.AutofitTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/demand_text"
+        android:layout_marginBottom="@dimen/element_margin"
+        android:gravity="center"
+        android:lines="1"
+        android:text="@string/demand_text_microphone"
+        android:textColor="@color/text_grey"
+        android:textSize="@dimen/text_small" />
+
+    <include layout="@layout/button_accept_small" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/element_margin" />
+
+    <include layout="@layout/button_deny_small" android:layout_width="match_parent" android:layout_height="wrap_content" />
+
+</LinearLayout>

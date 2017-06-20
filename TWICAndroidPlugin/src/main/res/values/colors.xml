@@ -21,4 +21,9 @@
 
     <color name="action_red">#E05656</color>
     <color name="action_green">#54B55A</color>
+
+    <color name="info_blue">#5886EE</color>
+
+    <color name="indicator_selected">#5886EE</color>
+    <color name="indicator_unselected">#355886ee</color>
 </resources>

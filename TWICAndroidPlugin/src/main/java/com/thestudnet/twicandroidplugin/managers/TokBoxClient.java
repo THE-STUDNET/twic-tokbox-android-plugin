@@ -25,7 +25,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static android.R.id.list;
 
 /**
  * INTERACTIVE LAYER
@@ -484,6 +487,21 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
         Log.d(TAG, "onSignalReceived: type = " + type + " , data = " + data);
 
+        JSONObject user = null;
+        try {
+            user = new JSONObject(connection.getData());
+        } catch (JSONException e) {
+            Log.e(TAG, "onSignalReceived: exception : " + e.getLocalizedMessage());
+        }
+
+        if (user != null && user.has("id") && !"".equals(user.optString("id"))) {
+            ArrayList<String> list = new ArrayList<>(2);
+            list.add(type);
+            list.add(user.optString("id"));
+            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SIGNAL_RECEIVED, list);
+        }
+
+        /*
         if(SIGNALTYPE_CAMERAAUTHORIZATION.equals(type)) {
             // TODO
         }
@@ -495,6 +513,9 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         }
         else if(SIGNALTYPE_MICROPHONEAUTHORIZATION.equals(type)) {
             // TODO
+            ArrayList<String> list = new ArrayList<>(1);
+            list.add(SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION);
+            TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SIGNAL_RECEIVED, list);
         }
         else if(SIGNALTYPE_CAMERAREQUESTED.equals(type)) {
             // TODO
@@ -508,6 +529,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         else if(SIGNALTYPE_FORCEUNMUTESTREAM.equals(type)) {
             // TODO
         }
+        */
     }
 
     /**************** END SIGNALING ****************/
