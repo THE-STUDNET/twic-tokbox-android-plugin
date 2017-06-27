@@ -53,24 +53,23 @@ public class VideoDetailFragment extends CustomFragment {
         mPublisherViewContainer = (RelativeLayout) view.findViewById(R.id.publisherview);
         mSubscriberViewContainer = (RelativeLayout) view.findViewById(R.id.subscriberview);
 
-        // Remove parent views
-        ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
-        ViewGroup subscriberParent = (ViewGroup) TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView().getParent();
-        if(publisherParent != null) {
-            publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
-        }
-        if(subscriberParent != null) {
-            subscriberParent.removeView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView());
-        }
-
-        // Add views
-        // Publisher
         if(TokBoxClient.getInstance().getPublisher() != null) {
+            // Remove parent views
+            ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
+            if(publisherParent != null) {
+                publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
+            }
+            // Add view
             RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
             mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView(), layoutParamsPublisher);
         }
-        // Subscriber
         if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0 && TokBoxClient.getInstance().getSubscribers().get(this.streamId) != null) {
+            // Remove parent views
+            ViewGroup subscriberParent = (ViewGroup) TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView().getParent();
+            if(subscriberParent != null) {
+                subscriberParent.removeView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView());
+            }
+            // Add views
             RelativeLayout.LayoutParams layoutParamsSubscriber = new RelativeLayout.LayoutParams(
                     getResources().getDisplayMetrics().widthPixels,
                     getResources().getDisplayMetrics().heightPixels
