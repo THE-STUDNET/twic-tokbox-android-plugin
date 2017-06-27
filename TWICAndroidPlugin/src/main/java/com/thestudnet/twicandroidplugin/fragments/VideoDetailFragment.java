@@ -64,14 +64,19 @@ public class VideoDetailFragment extends CustomFragment {
         }
 
         // Add views
-        RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
-        mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView(), layoutParamsPublisher);
+        // Publisher
+        if(TokBoxClient.getInstance().getPublisher() != null) {
+            RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
+            mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView(), layoutParamsPublisher);
+        }
         // Subscriber
-        RelativeLayout.LayoutParams layoutParamsSubscriber = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels,
-                getResources().getDisplayMetrics().heightPixels
-        );
-        mSubscriberViewContainer.addView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView(), layoutParamsSubscriber);
+        if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0 && TokBoxClient.getInstance().getSubscribers().get(this.streamId) != null) {
+            RelativeLayout.LayoutParams layoutParamsSubscriber = new RelativeLayout.LayoutParams(
+                    getResources().getDisplayMetrics().widthPixels,
+                    getResources().getDisplayMetrics().heightPixels
+            );
+            mSubscriberViewContainer.addView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView(), layoutParamsSubscriber);
+        }
     }
 
 //    @Override
