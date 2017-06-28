@@ -3,19 +3,16 @@ package com.thestudnet.twicandroidplugin;
 import android.content.Context;
 import android.util.Log;
 
-import com.opentok.android.Subscriber;
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.PluginInteraction;
-import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.FirebaseClient;
+import com.thestudnet.twicandroidplugin.managers.MessagesManager;
 import com.thestudnet.twicandroidplugin.managers.SettingsManager;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
-
-import java.util.Iterator;
 
 /**
  * INTERACTIVE LAYER
@@ -84,6 +81,7 @@ public class TWICAndroidPlugin {
 
     public void onDestroy() {
         SocketIoClient.getInstance().unregisterIoSocket();
+        MessagesManager.getInstance().unregisterMessageManager();
         FirebaseClient.getInstance().unregisterFirebaseClient();
         EventBus.getInstance().unregister(this);
     }

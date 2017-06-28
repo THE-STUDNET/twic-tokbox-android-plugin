@@ -6,16 +6,15 @@ import java.util.ArrayList;
 
 /**
  * INTERACTIVE LAYER
- * Created by Baptiste PHILIBERT on 20/04/15.
+ * Created by Baptiste PHILIBERT on 27/06/2017.
  */
-public class APIInteraction {
+
+public class MessageInteraction {
 
     public enum Type {
-        ON_HANGOUT_DATA_RECEIVED(0),
-        ON_HANGOUT_USERS_RECEIVED(1),
-        ON_TOKBOX_DATA_RECEIVED(2),
-        ON_USER_CONNECTION_STATE_CHANGED(3),
-        ON_MESSAGES_RECEIVED(4);
+        ON_MESSAGES_LOADED(0),
+        ON_LATEST_MESSAGES_LOADED(1),
+        ON_HISTORICAL_MESSAGES_LOADED(2);
 
         private int value;
 
@@ -28,18 +27,18 @@ public class APIInteraction {
         }
     }
 
-    private static APIInteraction instance;
-    public static APIInteraction getInstance() {
+    private static MessageInteraction instance;
+    public static MessageInteraction getInstance() {
         if(instance == null) {
-            instance = new APIInteraction();
+            instance = new MessageInteraction();
         }
         return instance;
     }
 
-    public class OnAPIInteractionEvent {
+    public class OnMessageInteractionEvent {
         private Type type;
         private ArrayList<? extends Object> data;
-        public OnAPIInteractionEvent(Type type, ArrayList<? extends Object> data) {
+        public OnMessageInteractionEvent(Type type, ArrayList<? extends Object> data) {
             this.type = type;
             this.data = data;
         }
@@ -58,7 +57,7 @@ public class APIInteraction {
 
     @Produce
     public void FireEvent(Type type, ArrayList<? extends Object> data) {
-        EventBus.getInstance().post(new OnAPIInteractionEvent(type, data));
+        EventBus.getInstance().post(new OnMessageInteractionEvent(type, data));
     }
 
 }

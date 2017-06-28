@@ -165,6 +165,27 @@ public class SocketIoClient {
         @Override
         public void call(final Object... args) {
             Log.d(TAG, "IOSOCKET : MESSAGE " + args.toString());
+
+            if(args.length > 0 && args[0] instanceof JSONObject) {
+                try {
+                    JSONObject message = (JSONObject) args[0];
+                    if(message.optString("conversation_id", "").equals(SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY))) {
+                        // TODO : check the message is not of type 2 (private message)
+                        if(MessagesManager.getInstance().getMessages().size() > 0) {
+                            APIClient.getInstance().getMessagesFromMessageId(MessagesManager.getInstance().getMessages().get(MessagesManager.getInstance().getMessages().size() - 1).getContentValue("id"));
+//                            APIClient.getInstance().getMessagesFromMessageId(MessagesManager.getInstance().getMessages().get(0).getContentValue("id"));
+                        }
+                        else {
+                            APIClient.getInstance().getMessages();
+                        }
+
+                    }
+                    // else : Message does not belong to this hangout : Do nothing
+                } catch (Exception e) {
+                    Log.e(TAG, "IOSOCKET : MESSAGE : EXCEPTION : " + e.getLocalizedMessage());
+                }
+            }
+
         /*
             getActivity().runOnUiThread(new Runnable() {
                 @Override

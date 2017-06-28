@@ -170,6 +170,7 @@
             <FrameLayout
                 android:layout_width="@dimen/element_min_width"
                 android:layout_height="@dimen/element_min_height"
+                android:id="@+id/button_messages"
                 android:background="@drawable/bg_clickable_element">
 
                 <ImageView
@@ -178,8 +179,40 @@
                     android:layout_gravity="center"
                     android:src="@drawable/message" />
 
+                <com.makeramen.roundedimageview.RoundedImageView
+                    android:id="@+id/new_message_state"
+                    android:layout_width="@dimen/new_message_state"
+                    android:layout_height="@dimen/new_message_state"
+                    android:layout_gravity="top|right"
+                    android:scaleType="fitCenter"
+                    android:src="@color/info_blue"
+                    app:riv_border_color="@android:color/transparent"
+                    app:riv_border_width="0dip"
+                    app:riv_corner_radius="10dip"
+                    app:riv_mutate_background="true"
+                    app:riv_oval="true"
+                    app:riv_tile_mode="repeat" />
+
             </FrameLayout>
 
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/messages_panel"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"
+            android:paddingRight="@dimen/messages_panel_padding"
+            android:layout_marginBottom="@dimen/element_margin"
+            android:visibility="gone">
+
+            <com.thestudnet.twicandroidplugin.views.MessagesListView
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/messages_panel_height"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="@dimen/activity_content_margin" />
 
         </LinearLayout>
 
@@ -224,8 +257,10 @@
                 android:layout_marginLeft="@dimen/element_margin"
                 android:layout_marginRight="@dimen/element_margin"
                 android:padding="@dimen/padding_small"
+                android:inputType="text"
                 android:layout_weight="1"
                 android:lines="1"
+                android:maxLines="1"
                 android:background="@drawable/bg_clickable_element"
                 android:hint="@string/chat_hint"
                 android:minHeight="@dimen/element_min_height"
@@ -236,6 +271,7 @@
             <FrameLayout
                 android:layout_width="@dimen/element_min_width"
                 android:layout_height="@dimen/element_min_height"
+                android:id="@+id/button_send"
                 android:background="@drawable/bg_clickable_element">
 
                 <ImageView

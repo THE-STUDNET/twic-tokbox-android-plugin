@@ -34,4 +34,9 @@
     <dimen name="popup_all">400dp</dimen>
     <dimen name="popup_padding">20dp</dimen>
 
+    <dimen name="messages_panel_height">400dp</dimen>
+    <dimen name="messages_panel_padding">200dp</dimen>
+    <dimen name="new_message_state_margin">1dp</dimen>
+    <dimen name="new_message_state">10dp</dimen>
+
 </resources>

@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.thestudnet.twicandroidplugin.communication.APIClientConfigurator;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
+import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
 import com.thestudnet.twicandroidplugin.utils.RandomInt;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
@@ -21,8 +22,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static android.R.attr.mode;
-
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
@@ -38,6 +37,9 @@ public class APIClient {
     public static String TWIC_ACTIVITY_ADDPATH              = "activity.add";
     public static String TWIC_STARTARCHIVEPATH              = "videoarchive.startRecord";
     public static String TWIC_STOPARCHIVEPATH               = "videoarchive.stopRecord";
+    public static String TWIC_MESSAGELISTPATH               = "message.getList";
+    public static String TWIC_CONVERSATIONREADPATH          = "conversation.read";
+    public static String TWIC_MESSAGESENDPATH               = "message.send";
     
     public static String HANGOUT_EVENT_JOIN                 = "hangout.join";
     public static String HANGOUT_EVENT_LEAVE                = "hangout.leave";
@@ -353,6 +355,216 @@ public class APIClient {
                         UserManager.getInstance().setConnectionState(true, userId);
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void getMessages() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(2);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        // “filter”:{“o”:{“message_id”:“ASC”}}
+//                        String filter = "{\"o\":{\"message.id\":\"DESC\"}}";
+//                        String filter = "o:{\"message.id\":\"DESC\"}";
+                        HashMap<String, Object> filterParams = new HashMap<String, Object>(1);
+                        HashMap<String, Object> filterParamsValue = new HashMap<String, Object>(1);
+                        filterParamsValue.put("message.id", "DESC");
+                        filterParams.put("o", filterParamsValue);
+                        param.put("filter", filterParams);
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_MESSAGELISTPATH, param, requestID);
+
+//                        String jsonString = "{\"method\":\""+TWIC_MESSAGELISTPATH+"\"," +
+//                                "\"params\":{\"id\":\""+ SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY) +"\",\"filter\":{\"o\":{\"message.id\":\"DESC\"}}}," +
+//                                "\"id\":\""+ String.valueOf(requestID) +"\","+
+//                                "\"jsonrpc\":\"2.0\"}";
+//
+//                        request = JSONRPC2Request.parse(jsonString);
+
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONRPC2ParseException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response.getResult().toString());
+                            ArrayList<Integer> list = new ArrayList<Integer>(1);
+                            list.add(MessagesManager.getInstance().insertMessages(jsonResponse.optString("list", ""), true));
+                            MessageInteraction.getInstance().FireEvent(MessageInteraction.Type.ON_MESSAGES_LOADED, list);
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void getMessagesFromMessageId(final String messageId) {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(2);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+
+                        HashMap<String, Object> filterParams = new HashMap<String, Object>(1);
+
+                        HashMap<String, Object> filterParams0Value = new HashMap<String, Object>(1);
+                        filterParams0Value.put("message.id", "DESC");
+
+                        HashMap<String, Object> filterParamsCValue = new HashMap<String, Object>(1);
+                        filterParamsCValue.put("message.id", ">");
+
+                        filterParams.put("o", filterParams0Value);
+                        filterParams.put("s", messageId);
+                        filterParams.put("c", filterParamsCValue);
+
+                        param.put("filter", filterParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_MESSAGELISTPATH, param, requestID);
+
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONRPC2ParseException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response.getResult().toString());
+                            ArrayList<Integer> list = new ArrayList<Integer>(1);
+                            list.add(MessagesManager.getInstance().insertMessages(jsonResponse.optString("list", ""), true));
+                            MessageInteraction.getInstance().FireEvent(MessageInteraction.Type.ON_LATEST_MESSAGES_LOADED, list);
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void getMessagesBeforeMessageId(final String messageId) {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(2);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+
+                        HashMap<String, Object> filterParams = new HashMap<String, Object>(1);
+
+                        HashMap<String, Object> filterParams0Value = new HashMap<String, Object>(1);
+                        filterParams0Value.put("message.id", "DESC");
+
+                        HashMap<String, Object> filterParamsCValue = new HashMap<String, Object>(1);
+                        filterParamsCValue.put("message.id", "<");
+
+                        filterParams.put("o", filterParams0Value);
+                        filterParams.put("s", messageId);
+                        filterParams.put("c", filterParamsCValue);
+
+                        param.put("filter", filterParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_MESSAGELISTPATH, param, requestID);
+
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONRPC2ParseException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response.getResult().toString());
+                            ArrayList<Integer> list = new ArrayList<Integer>(1);
+                            list.add(MessagesManager.getInstance().insertMessages(jsonResponse.optString("list", ""), false));
+                            MessageInteraction.getInstance().FireEvent(MessageInteraction.Type.ON_HISTORICAL_MESSAGES_LOADED, list);
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getLocalizedMessage());
+                        }
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void sendMessage(final String message) {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(2);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        param.put("text", message);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_MESSAGESENDPATH, param, requestID);
+
+                        // Send request
+                        response = client.send(request);
+                    }
+//                    catch (JSONRPC2ParseException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
+//                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
                     }
                 }
             }.start();

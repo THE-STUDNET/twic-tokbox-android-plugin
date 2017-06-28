@@ -9,10 +9,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -24,7 +27,7 @@ import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
-import com.thestudnet.twicandroidplugin.events.SocketIoInteraction;
+import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.fragments.UsersDemandsDialogFragment;
 import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
@@ -32,6 +35,7 @@ import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.HangoutManager;
+import com.thestudnet.twicandroidplugin.managers.MessagesManager;
 import com.thestudnet.twicandroidplugin.managers.SettingsManager;
 import com.thestudnet.twicandroidplugin.managers.SocketIoClient;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
@@ -73,6 +77,10 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     private ArrayList<String> usersDemands;
 
+    private LinearLayout messages_panel;
+    private EditText type_message;
+    private ImageView new_message_state;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +92,10 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.publish_mic = (ImageView) this.findViewById(R.id.publish_mic);
 
         this.button_record = (ImageView) this.findViewById(R.id.button_record);
+
+        this.messages_panel = (LinearLayout) this.findViewById(R.id.messages_panel);
+        this.type_message = (EditText) this.findViewById(R.id.type_message);
+        this.new_message_state = (ImageView) this.findViewById(R.id.new_message_state);
 
         this.updateUsersCount();
 
@@ -117,6 +129,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     private void requestPermissions() {
         String[] perms = { Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO };
         if (EasyPermissions.hasPermissions(this, perms)) {
+            MessagesManager.getInstance().registerMessageManager();
             TokBoxClient.getInstance().connectSession();
             SocketIoClient.getInstance().registerIoSocket();
             this.getSupportFragmentManager().beginTransaction()
@@ -196,6 +209,20 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.showUsersActivity();
     }
 
+    @OnClick(R2.id.button_messages) void onButtonMessagesClicked() {
+        if(this.messages_panel.getVisibility() == View.GONE) {
+            this.messages_panel.setVisibility(View.VISIBLE);
+            this.new_message_state.setVisibility(View.INVISIBLE);
+        }
+        else {
+            this.messages_panel.setVisibility(View.GONE);
+        }
+    }
+
+    @OnClick(R2.id.button_send) void onButtonSendClicked() {
+        this.sendMessage();
+    }
+
     @OnClick(R2.id.publish_camera) void onButtonPublishCameraClicked() {
         if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONPUBLISH) == true) {
             TokBoxClient.getInstance().publish(true, true);
@@ -230,6 +257,13 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     @OnClick(R2.id.user_demand) void onUsersDemandsClicked() {
         this.demandDialog.updateData(this.usersDemands);
         this.demandDialog.show(getSupportFragmentManager(), "");
+    }
+
+    private void sendMessage() {
+        if(!TextUtils.isEmpty(this.type_message.getText())) {
+            APIClient.getInstance().sendMessage(this.type_message.getText().toString());
+            this.type_message.setText("");
+        }
     }
 
     private void updateUserDialog() {
@@ -574,14 +608,6 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     }
 
     @Subscribe
-    public void onSocketIoInteraction(SocketIoInteraction.OnSocketIoInteractionEvent event) {
-        if(event.getType() == SocketIoInteraction.Type.ON_BACK_PRESSED) {
-            // Back
-            this.getSupportFragmentManager().popBackStack();
-        }
-    }
-
-    @Subscribe
     public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
         if(event.getType() == TokBoxInteraction.Type.ON_SESSION_CONNECTED) {
             Log.d(TAG, "ON_SESSION_CONNECTED");
@@ -753,6 +779,23 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             this.updateUsersCount();
 
             // TODO Add "User joined" notification message in conversation panel
+        }
+    }
+
+    @Subscribe
+    public void onMessageInteraction(MessageInteraction.OnMessageInteractionEvent event) {
+        if(event.getType() == MessageInteraction.Type.ON_MESSAGES_LOADED || event.getType() == MessageInteraction.Type.ON_LATEST_MESSAGES_LOADED) {
+            if(event.getData().size() > 0 && event.getData().get(0) instanceof Integer && ((Integer) event.getData().get(0)).intValue() > 0) {
+                if(this.messages_panel.getVisibility() == View.GONE) {
+                    // Show the new message status
+                    this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            new_message_state.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            }
         }
     }
 
