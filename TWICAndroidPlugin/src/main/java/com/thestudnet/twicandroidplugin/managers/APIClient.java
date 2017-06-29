@@ -571,6 +571,41 @@ public class APIClient {
         }
     }
 
+    public void sendConversationRead() {
+        if(this.client != null) {
+            new Thread() {
+                public void run() {
+                    // Construct request
+                    int requestID = new RandomInt().nextNonNegative();
+                    HashMap<String, Object> param = new HashMap<>(1);
+                    //JSONObject jsonParams = new JSONObject();
+                    JSONRPC2Response response = null;
+
+                    try {
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_CONVERSATIONREADPATH, param, requestID);
+                        // Send request
+                        response = client.send(request);
+                    }
+                    catch (JSONRPC2SessionException e) {
+                        Log.e(TAG, e.getLocalizedMessage());
+                        Log.e(TAG, e.getMessage());
+                    }
+
+                    if(response != null && response.indicatesSuccess()) {
+                        Log.d(TAG, response.getResult().toString());
+                    }
+                    else if(response != null && response.getError() != null) {
+                        Log.e(TAG, response.getError().toString());
+                    }
+                    else {
+                        Log.e(TAG, "unknown error in sendConversationRead");
+                    }
+                }
+            }.start();
+        }
+    }
+
     public void startArchiving() {
         if(this.client != null) {
             new Thread() {

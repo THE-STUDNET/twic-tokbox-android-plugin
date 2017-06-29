@@ -211,10 +211,14 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @OnClick(R2.id.button_messages) void onButtonMessagesClicked() {
         if(this.messages_panel.getVisibility() == View.GONE) {
+            // Show the message panel
             this.messages_panel.setVisibility(View.VISIBLE);
             this.new_message_state.setVisibility(View.INVISIBLE);
+            // Call API "conversation.read" (the whole conversation, message by message)
+            APIClient.getInstance().sendConversationRead();
         }
         else {
+            // Hide the message panel
             this.messages_panel.setVisibility(View.GONE);
         }
     }
