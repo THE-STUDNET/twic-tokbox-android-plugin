@@ -784,7 +784,7 @@ public class APIClient {
                         Log.e(TAG, response.getError().toString());
                     }
                     else {
-                        Log.e(TAG, "unknown error in sendUserJoin");
+                        Log.e(TAG, "unknown error in sendUserLeave");
                     }
                 }
             }.start();

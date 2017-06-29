@@ -122,7 +122,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
         }
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.user_name);
-        lblListHeader.setText(user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY));
+        lblListHeader.setText(UserManager.getInstance().getDisplayName(user.optString("id")));
 
         com.makeramen.roundedimageview.RoundedImageView user_connection_state = (com.makeramen.roundedimageview.RoundedImageView) convertView.findViewById(R.id.user_connection_state);
         ImageView sharing_camera = (ImageView) convertView.findViewById(R.id.sharing_camera);
@@ -173,7 +173,7 @@ public class UsersAdapter extends BaseExpandableListAdapter {
                         + pathKeySettings.optString("datas", "")
                         + "/"
                         + user.optString(UserManager.USER_AVATARKEY, "");
-                Glide.with(this._context).load(url).fitCenter().into(user_avatar_image);
+                Glide.with(this._context).load(url).error(R.drawable.users).centerCrop().into(user_avatar_image);
             }
         }
 

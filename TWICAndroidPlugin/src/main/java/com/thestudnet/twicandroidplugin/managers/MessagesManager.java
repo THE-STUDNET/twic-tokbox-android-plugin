@@ -6,6 +6,7 @@ import android.util.Log;
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
+import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
@@ -128,12 +129,60 @@ public class MessagesManager extends JsonManager {
         return newMessagesCount;
     }
 
+    /**
+     * Insert a message at the end of the list
+     * @param text
+     * @param userId leave it empty if there is no user associated to the message
+     * @param notify true to throw the ON_LATEST_MESSAGES_LOADED event, false otherwise
+     */
+    public void insertAutomaticMessage(String text, String userId, boolean notify) {
+        ContentValues values = new ContentValues(3);
+        values.put("type", "local");
+        values.put("id", this.getLastMessageId());
+        values.put("user_id", userId);
+        values.put("text", text);
+        this.messages.add(new GenericModel(values));
+
+        if(notify) {
+            ArrayList<Integer> list = new ArrayList<Integer>(1);
+            list.add(1);
+            MessageInteraction.getInstance().FireEvent(MessageInteraction.Type.ON_LATEST_MESSAGES_LOADED, list);
+        }
+    }
+
+    /*
+    public void insertAutomaticMessage(String text) {
+        ContentValues values = new ContentValues(3);
+        values.put("id", this.getLastMessageId());
+        values.put("user_id", "-1");
+        values.put("text", text);
+        this.messages.add(new GenericModel(values));
+    }
+
+    public void insertUserMessage(String userId, String text) {
+        ContentValues values = new ContentValues(3);
+        values.put("id", this.getLastMessageId());
+        values.put("user_id", userId);
+        values.put("text", text);
+        this.messages.add(new GenericModel(values));
+    }
+    */
+
     public ArrayList<GenericModel> getMessages() {
         return this.messages;
     }
 
     public void invertSorting() {
         Collections.reverse(this.messages);
+    }
+
+    public String getLastMessageId() {
+        if(this.messages.size() > 0) {
+            return this.messages.get(this.messages.size() - 1).getContentValue("id");
+        }
+        else {
+            return "0";
+        }
     }
 
     @Subscribe

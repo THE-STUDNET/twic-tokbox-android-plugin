@@ -39,27 +39,54 @@ public class MessagesAdapter extends CustomAdapter {
     }
 
     private void bind(GenericModel message, View view) {
-
-//        String url = Proxy.HOST_NAME + "/uploadsphotos/" + model.getContentValue(Avocat.ID) + ".png";
-//        Glide.with(this.context).load(url).placeholder(R.drawable.no_image).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.NONE).fitCenter().into(holder.image);
-        JSONObject user = UserManager.getInstance().getSettingsForKey(message.getContentValue("user_id"));
-        if(user != null) {
-            ViewHolder holder = (ViewHolder) view.getTag();
-            holder.message_user.setText(user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY));
-            holder.message_content.setText(message.getContentValue("text"));
-            JSONObject dsmSettings = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_DMSKEY);
-            if(dsmSettings != null) {
-                JSONObject pathKeySettings = dsmSettings.optJSONObject(SettingsManager.SETTINGS_PATHSKEY);
-                if(pathKeySettings != null) {
-                    String url = dsmSettings.optString(SettingsManager.SETTINGS_PROTOCOLKEY, "")
-                            + "://"
-                            + dsmSettings.optString(SettingsManager.SETTINGS_DOMAINKEY, "")
-                            + "/"
-                            + pathKeySettings.optString("datas", "")
-                            + "/"
-                            + user.optString(UserManager.USER_AVATARKEY, "");
-                    Glide.with(this.context).load(url).fitCenter().into(holder.user_avatar_image);
+        String type = message.getContentValue("type");
+        if(!"local".equals(type)) {
+            JSONObject user = UserManager.getInstance().getSettingsForKey(message.getContentValue("user_id"));
+            if(user != null) {
+                ViewHolder holder = (ViewHolder) view.getTag();
+                holder.message_user.setText(user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY));
+                holder.message_content.setText(message.getContentValue("text"));
+                JSONObject dsmSettings = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_DMSKEY);
+                if(dsmSettings != null) {
+                    JSONObject pathKeySettings = dsmSettings.optJSONObject(SettingsManager.SETTINGS_PATHSKEY);
+                    if(pathKeySettings != null) {
+                        String url = dsmSettings.optString(SettingsManager.SETTINGS_PROTOCOLKEY, "")
+                                + "://"
+                                + dsmSettings.optString(SettingsManager.SETTINGS_DOMAINKEY, "")
+                                + "/"
+                                + pathKeySettings.optString("datas", "")
+                                + "/"
+                                + user.optString(UserManager.USER_AVATARKEY, "");
+                        Glide.with(this.context).load(url).error(R.drawable.users).centerCrop().into(holder.user_avatar_image);
+                    }
                 }
+            }
+        }
+        else {
+            ViewHolder holder = (ViewHolder) view.getTag();
+            holder.message_user.setText(this.context.getString(R.string.message_user_bot));
+            holder.message_content.setText(message.getContentValue("text"));
+            if(!"".equals(message.getContentValue("user_id"))) {
+                JSONObject user = UserManager.getInstance().getSettingsForKey(message.getContentValue("user_id"));
+                if(user != null) {
+                    JSONObject dsmSettings = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_DMSKEY);
+                    if(dsmSettings != null) {
+                        JSONObject pathKeySettings = dsmSettings.optJSONObject(SettingsManager.SETTINGS_PATHSKEY);
+                        if(pathKeySettings != null) {
+                            String url = dsmSettings.optString(SettingsManager.SETTINGS_PROTOCOLKEY, "")
+                                    + "://"
+                                    + dsmSettings.optString(SettingsManager.SETTINGS_DOMAINKEY, "")
+                                    + "/"
+                                    + pathKeySettings.optString("datas", "")
+                                    + "/"
+                                    + user.optString(UserManager.USER_AVATARKEY, "");
+                            Glide.with(this.context).load(url).error(R.drawable.users).centerCrop().into(holder.user_avatar_image);
+                        }
+                    }
+                }
+            }
+            else {
+                Glide.with(this.context).load(R.drawable.users).centerCrop().into(holder.user_avatar_image);
             }
         }
     }

@@ -169,11 +169,11 @@ public class SocketIoClient {
             if(args.length > 0 && args[0] instanceof JSONObject) {
                 try {
                     JSONObject message = (JSONObject) args[0];
+                    // Check message belongs to general Hangout conversation
                     if(message.optString("conversation_id", "").equals(SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY))) {
-                        // TODO : check the message is not of type 2 (private message)
-                        if(MessagesManager.getInstance().getMessages().size() > 0) {
-                            APIClient.getInstance().getMessagesFromMessageId(MessagesManager.getInstance().getMessages().get(MessagesManager.getInstance().getMessages().size() - 1).getContentValue("id"));
-//                            APIClient.getInstance().getMessagesFromMessageId(MessagesManager.getInstance().getMessages().get(0).getContentValue("id"));
+                        // TODO ? check the message is not of type 2 (private message)
+                        if(MessagesManager.getInstance().getMessages().size() > 0) { // Pagination
+                            APIClient.getInstance().getMessagesFromMessageId(MessagesManager.getInstance().getLastMessageId());
                         }
                         else {
                             APIClient.getInstance().getMessages();

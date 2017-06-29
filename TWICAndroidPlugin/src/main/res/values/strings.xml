@@ -80,4 +80,11 @@
     <string name="button_accept">Accept</string>
     <string name="button_ok">Ok</string>
 
+    <string name="message_user_bot">Automatic message</string>
+    <string name="message_user_joined">%1$s has joined the conversation</string>
+    <string name="message_user_left">%1$s has left the conversation</string>
+    <string name="message_user_stream_destroyed">%1$s\'s stream has been turned off</string>
+    <string name="message_user_archive_started">Recording started</string>
+    <string name="message_user_archive_stopped">Recording stopped</string>
+
 </resources>

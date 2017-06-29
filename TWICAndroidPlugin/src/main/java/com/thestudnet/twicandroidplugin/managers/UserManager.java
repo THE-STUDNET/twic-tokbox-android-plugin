@@ -10,6 +10,8 @@ import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
 import org.json.JSONObject;
 
+import static android.R.attr.value;
+
 /**
  * INTERACTIVE LAYER
  * Created by Baptiste PHILIBERT on 27/04/2017.
@@ -62,6 +64,16 @@ public class UserManager extends JsonManager {
             return instance;
         } else {
             return instance;
+        }
+    }
+
+    public String getDisplayName(String userId) {
+        JSONObject user = this.getSettingsForKey(userId);
+        if(user != null) {
+            return user.optString(USER_FIRSTNAMEKEY, "") + " " + user.optString(USER_LASTNAMEKEY, "");
+        }
+        else {
+            return "";
         }
     }
 

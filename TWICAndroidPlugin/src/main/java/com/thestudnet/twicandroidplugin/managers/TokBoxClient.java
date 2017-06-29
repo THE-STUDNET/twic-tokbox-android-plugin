@@ -13,6 +13,7 @@ import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 import com.squareup.otto.Subscribe;
+import com.thestudnet.twicandroidplugin.R;
 import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
@@ -25,10 +26,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static android.R.id.list;
 
 /**
  * INTERACTIVE LAYER
@@ -263,6 +261,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                     // Set user connection state to "connected"
                     UserManager.getInstance().setConnectionState(true, userId);
                     APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    // Add "User joined" notification message in conversation panel
+                    MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_joined, UserManager.getInstance().getDisplayName(userId)), userId, true);
                     // Check if YOU are asking for camera permission
                     if(UserManager.getInstance().isUserAskingPermission(UserManager.USER_LOCAL_ASKCAMERA, UserManager.getInstance().getCurrentUserId())) {
                         // Send tokbox signal "hgt_camera_authorization" to this user
@@ -273,7 +273,6 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                         // Send tokbox signal "hgt_microphone_authorization" to this user
                         this.sendSignal(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION, userId);
                     }
-                    // TODO Add "User joined" notification message in conversation panel
                 }
             }
             else {
@@ -311,7 +310,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             user = new JSONObject(connection.getData());
         }
         catch (JSONException e) {
-            Log.e(TAG, "onConnectionCreated: exception : " + e.getLocalizedMessage());
+            Log.e(TAG, "onConnectionDestroyed: exception : " + e.getLocalizedMessage());
         }
 
         if(user != null && user.has("id") && !"".equals(user.optString("id"))) {
@@ -327,8 +326,11 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                     APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
 
                     // Add "User leave" notification message in conversation panel
-                    // ( with disconnect reason )
-                    APIClient.getInstance().sendUserLeave(); // TODO pass disconnect reason
+                    // TODO => with disconnect reason ?
+                    MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_left, UserManager.getInstance().getDisplayName(userId)), userId, true);
+
+                    // Register "hangout.leave" event with API
+                    APIClient.getInstance().sendUserLeave();
                 }
             }
         }
@@ -372,6 +374,16 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             contentValues.put("id", stream.getStreamId());
             list.add(new GenericModel(contentValues));
             TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_PUBLISHER_REMOVED, list);
+
+            JSONObject user = null;
+            try {
+                user = new JSONObject(stream.getConnection().getData());
+                // TODO ? Check stream destroyed reason => Reason == "forceUnpublished"
+                MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_stream_destroyed, UserManager.getInstance().getDisplayName(user.optString("id"))), user.optString("id"), true);
+            }
+            catch (JSONException e) {
+                Log.e(TAG, "onStreamDestroyed: exception : " + e.getLocalizedMessage());
+            }
         }
     }
 
@@ -497,6 +509,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         this.isArchiving.set(true);
         // Throw event
         TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_ARCHIVE_STARTED, null);
+        // Add "Recording started" notification message in conversation panel
+        MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_archive_started), "", true);
     }
 
     @Override
@@ -505,6 +519,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         this.isArchiving.set(false);
         // Throw event
         TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_ARCHIVE_STOPPED, null);
+        // Add "Recording stopped" notification message in conversation panel
+        MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_archive_stopped), "", true);
     }
 
     /**************** END ARCHIVE ****************/
@@ -549,31 +565,23 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
 
         /*
         if(SIGNALTYPE_CAMERAAUTHORIZATION.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_CANCELCAMERAAUTHORIZATION.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_MICROPHONEAUTHORIZATION.equals(type)) {
-            // TODO
             ArrayList<String> list = new ArrayList<>(1);
             list.add(SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION);
             TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SIGNAL_RECEIVED, list);
         }
         else if(SIGNALTYPE_CAMERAREQUESTED.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_MICROPHONEREQUESTED.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_FORCEMUTESTREAM.equals(type)) {
-            // TODO
         }
         else if(SIGNALTYPE_FORCEUNMUTESTREAM.equals(type)) {
-            // TODO
         }
         */
     }

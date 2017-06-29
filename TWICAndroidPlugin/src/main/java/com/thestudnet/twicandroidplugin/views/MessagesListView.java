@@ -100,7 +100,7 @@ public class MessagesListView extends ListView {
     @Subscribe
     public void onMessageInteraction(final MessageInteraction.OnMessageInteractionEvent event) {
         if(event.getType() == MessageInteraction.Type.ON_MESSAGES_LOADED || event.getType() == MessageInteraction.Type.ON_LATEST_MESSAGES_LOADED  || event.getType() == MessageInteraction.Type.ON_HISTORICAL_MESSAGES_LOADED) {
-            if(event.getData().size() > 0 && event.getData().get(0) instanceof Integer && ((Integer) event.getData().get(0)).intValue() > 0) {
+            if(event.getData().size() > 0 && event.getData().get(0) instanceof Integer && ((Integer) event.getData().get(0)).intValue() > 0) { // Check if the number of new messages is more than 0
                 this.post(new Runnable() {
                     @Override
                     public void run() {

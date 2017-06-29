@@ -11,17 +11,18 @@
         android:id="@+id/user_avatar_image"
         android:layout_width="@dimen/avatar"
         android:layout_height="@dimen/avatar"
+        android:src="@drawable/users"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_centerInParent="false"
         android:layout_centerVertical="true"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         app:riv_border_color="@color/avatar_border"
         app:riv_border_width="2dip"
         app:riv_corner_radius="30dip"
         app:riv_mutate_background="true"
-        app:riv_oval="true"
-        app:riv_tile_mode="repeat" />
+        app:riv_oval="false"
+        app:riv_tile_mode="clamp" />
 
     <TextView
         android:id="@+id/message_user"
