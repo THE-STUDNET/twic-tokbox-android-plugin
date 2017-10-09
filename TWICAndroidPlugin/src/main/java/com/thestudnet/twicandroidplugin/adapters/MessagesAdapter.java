@@ -101,6 +101,9 @@ public class MessagesAdapter extends CustomAdapter {
             else {
                 Glide.with(this.context).load(R.drawable.users).centerCrop().into(holder.user_avatar_image);
             }
+            holder.message_user.setTextColor(ContextCompat.getColor(super.context, R.color.message));
+            holder.message_content.setTextColor(ContextCompat.getColor(super.context, R.color.message));
+            holder.message_container.setBackgroundResource(R.drawable.bg_message);
         }
     }
 
