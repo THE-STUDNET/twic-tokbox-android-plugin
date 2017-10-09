@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -80,6 +81,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     private ArrayList<String> usersDemands;
 
+    private FrameLayout button_messages;
+    private ImageView button_messages_icon;
     private LinearLayout messages_panel;
     private EditText type_message;
     private ImageView new_message_state;
@@ -96,6 +99,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
         this.button_record = (ImageView) this.findViewById(R.id.button_record);
 
+        this.button_messages = (FrameLayout) this.findViewById(R.id.button_messages);
+        this.button_messages_icon = (ImageView) this.findViewById(R.id.button_messages_icon);
         this.messages_panel = (LinearLayout) this.findViewById(R.id.messages_panel);
         this.type_message = (EditText) this.findViewById(R.id.type_message);
         this.new_message_state = (ImageView) this.findViewById(R.id.new_message_state);
@@ -214,6 +219,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @OnClick(R2.id.button_messages) void onButtonMessagesClicked() {
         if(this.messages_panel.getVisibility() == View.GONE) {
+            // Switch icon layout
+            this.switchMessageIcon(true);
             // Show the message panel
             this.messages_panel.setVisibility(View.VISIBLE);
             this.new_message_state.setVisibility(View.INVISIBLE);
@@ -221,8 +228,21 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             APIClient.getInstance().sendConversationRead();
         }
         else {
+            // Switch icon layout
+            this.switchMessageIcon(false);
             // Hide the message panel
             this.messages_panel.setVisibility(View.GONE);
+        }
+    }
+
+    private void switchMessageIcon(boolean active) {
+        if(active) {
+            this.button_messages.setBackgroundResource(R.drawable.bg_button_msg_active);
+            this.button_messages_icon.setImageResource(R.drawable.message_active);
+        }
+        else {
+            this.button_messages.setBackgroundResource(R.drawable.bg_clickable_element);
+            this.button_messages_icon.setImageResource(R.drawable.message);
         }
     }
 
