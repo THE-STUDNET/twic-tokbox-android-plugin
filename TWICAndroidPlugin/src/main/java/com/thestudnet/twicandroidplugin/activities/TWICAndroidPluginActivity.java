@@ -1,6 +1,7 @@
 package com.thestudnet.twicandroidplugin.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -278,6 +280,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     private void sendMessage() {
         if(!TextUtils.isEmpty(this.type_message.getText())) {
             APIClient.getInstance().sendMessage(this.type_message.getText().toString());
+            this.forceHideKeyboard();
             this.type_message.setText("");
         }
     }
@@ -586,6 +589,14 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         }
         else {
             this.button_record.setImageResource(R.drawable.record_off);
+        }
+    }
+
+    private void forceHideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 
