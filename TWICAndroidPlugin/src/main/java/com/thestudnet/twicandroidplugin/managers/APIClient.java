@@ -7,6 +7,7 @@ import com.thestudnet.twicandroidplugin.communication.APIClientConfigurator;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.models.GenericModel;
+import com.thestudnet.twicandroidplugin.utils.DateUtils;
 import com.thestudnet.twicandroidplugin.utils.RandomInt;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
@@ -617,9 +618,17 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_STARTRECORD, param, requestID);
+                        param.put("event", HANGOUT_EVENT_STARTRECORD);
+                        param.put("date", DateUtils.getCurrentDateIso());
+
+                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+
+                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        objectParams.put("name", "hangout");
+
+                        param.put("object", objectParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -653,9 +662,17 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_STOPRECORD, param, requestID);
+                        param.put("event", HANGOUT_EVENT_STOPRECORD);
+                        param.put("date", DateUtils.getCurrentDateIso());
+
+                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+
+                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        objectParams.put("name", "hangout");
+
+                        param.put("object", objectParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -688,9 +705,19 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(eventName, param, requestID);
+                        param.put("event", eventName);
+                        param.put("date", DateUtils.getCurrentDateIso());
+
+                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+
+                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        objectParams.put("name", "hangout");
+
+                        param.put("object", objectParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
+
+
                         // Send request
                         response = client.send(request);
                     }
@@ -724,9 +751,17 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_JOIN, param, requestID);
+                        param.put("event", HANGOUT_EVENT_JOIN);
+                        param.put("date", DateUtils.getCurrentDateIso());
+
+                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+
+                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        objectParams.put("name", "hangout");
+
+                        param.put("object", objectParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -763,9 +798,17 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        param.put("name", "hangout");
-                        JSONRPC2Request request = new JSONRPC2Request(HANGOUT_EVENT_LEAVE, param, requestID);
+                        param.put("event", HANGOUT_EVENT_LEAVE);
+                        param.put("date", DateUtils.getCurrentDateIso());
+
+                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+
+                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        objectParams.put("name", "hangout");
+
+                        param.put("object", objectParams);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
