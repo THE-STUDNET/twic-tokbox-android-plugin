@@ -1,5 +1,6 @@
 package com.thestudnet.twicandroidplugin.managers;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.thestudnet.twicandroidplugin.TWICAndroidPlugin;
@@ -42,7 +43,17 @@ public class SocketIoClient {
             EventBus.getInstance().register(minstance);
             instance = minstance;
             try {
-                instance.ioSocket = IO.socket(IoSocketConfig.SERVER_URL);
+                JSONObject ioSocketConfig = SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_WSKEY);
+                String uri = "http";
+                if(ioSocketConfig.optBoolean(SettingsManager.SETTINGS_WS_SECURE, false)) {
+                    uri += "s";
+                }
+                uri += "://" + ioSocketConfig.optString(SettingsManager.SETTINGS_WS_DOMAIN, "");
+                String port = ioSocketConfig.optString(SettingsManager.SETTINGS_WS_PORT, "");
+                if(!TextUtils.isEmpty(port)) {
+                    uri += ":" + port;
+                }
+                instance.ioSocket = IO.socket(uri);
             }
             catch (URISyntaxException error) {
 
@@ -85,8 +96,8 @@ public class SocketIoClient {
 
             try {
                 JSONObject params = new JSONObject();
-                params.put("id", 1);
-                params.put("authentification", IoSocketConfig.AUTH_TOKEN);
+                params.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY));
+                params.put("authentification", SettingsManager.getInstance().getSettingsForKey(SettingsManager.SETTINGS_WSKEY).optString(SettingsManager.SETTINGS_WS_AUTH_TOKEN, ""));
                 params.put("connection_token", new DeviceUuidFactory(TWICAndroidPlugin.getInstance().getContext()).getDeviceUuid().toString());
                 getIoSocket().emit("authentify", params);
             }

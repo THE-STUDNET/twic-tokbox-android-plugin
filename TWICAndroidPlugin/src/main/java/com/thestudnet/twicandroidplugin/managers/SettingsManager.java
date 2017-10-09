@@ -14,7 +14,13 @@ public class SettingsManager extends JsonManager {
     public static String SETTINGS_APIKEY                 = "api";
     public static String SETTINGS_DMSKEY                 = "dms";
     public static String SETTINGS_FIREBASEKEY            = "firebase";
+
     public static String SETTINGS_WSKEY                  = "ws";
+    public static String SETTINGS_WS_AUTH_TOKEN          = "auth_token";
+    public static String SETTINGS_WS_DOMAIN              = "domain";
+    public static String SETTINGS_WS_PORT                = "port";
+    public static String SETTINGS_WS_SECURE              = "secure";
+
     public static String SETTINGS_TOKBOXAPIKEY           = "tokbox_api_key";
     public static String SETTINGS_USERIDKEY              = "user_id";
     public static String SETTINGS_HANGOUTIDKEY           = "hangout_id";
