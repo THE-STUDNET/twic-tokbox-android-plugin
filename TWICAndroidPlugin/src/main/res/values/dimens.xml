@@ -27,8 +27,8 @@
     <dimen name="demand_type">30dp</dimen>
     <dimen name="demand_margin">10dp</dimen>
 
-    <dimen name="publisherview_width">150dp</dimen>
-    <dimen name="publisherview_height">200dp</dimen>
+    <dimen name="publisherview_width">125dp</dimen>
+    <dimen name="publisherview_height">167dp</dimen>
 
     <dimen name="popup_square">120dp</dimen>
     <dimen name="popup_all">400dp</dimen>
