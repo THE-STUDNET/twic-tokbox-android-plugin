@@ -88,7 +88,7 @@ public class HangoutManager extends JsonManager {
         }
     }
 
-    public boolean getRule(String rule) throws JSONException {
+    public boolean getRule(String rule) {
         // TODO : remove before moving to production !
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) return false;
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) return false;
@@ -97,17 +97,25 @@ public class HangoutManager extends JsonManager {
         if(rules != null) {
             JSONArray ruleContent = rules.optJSONArray(rule);
             if(ruleContent != null && ruleContent.length() > 0) {
-                JSONArray content = ruleContent.optJSONObject(0).getJSONArray("roles");
+                JSONArray content = null;
+                try {
+                    content = ruleContent.optJSONObject(0).getJSONArray("roles");
 
-                // TODO REMOVE LOG
-                Log.d("HangoutManager", content.toString());
+                    // TODO REMOVE LOG
+                    Log.d("HangoutManager", content.toString());
 
-                if(content != null && content.length() > 0) {
-                    for(int i = 0; i < content.length(); i++) {
-                        if(HangoutManager.getInstance().getRawValueForKey(HANGOUT_CURRENT_USER_ROLE).equals(content.optString(i))) {
-                            return true;
+                    if(content != null && content.length() > 0) {
+                        for(int i = 0; i < content.length(); i++) {
+                            if(HangoutManager.getInstance().getRawValueForKey(HANGOUT_CURRENT_USER_ROLE).equals(content.optString(i))) {
+                                return true;
+                            }
                         }
                     }
+
+                }
+                catch (JSONException e) {
+                    // TODO REMOVE LOG
+                    Log.d("HangoutManager JSONException = ", e.getLocalizedMessage());
                 }
                 return false;
             }
