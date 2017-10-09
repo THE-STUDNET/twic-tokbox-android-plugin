@@ -12,6 +12,7 @@
     <color name="text_grey">#444444</color>
 
     <color name="message">#373B44</color>
+    <color name="message_white">#ffffff</color>
 
     <color name="background_dark">#444444</color>
     <color name="background_users">#373B44</color>

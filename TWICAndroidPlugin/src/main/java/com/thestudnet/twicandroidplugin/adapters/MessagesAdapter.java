@@ -1,10 +1,12 @@
 package com.thestudnet.twicandroidplugin.adapters;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -60,6 +62,17 @@ public class MessagesAdapter extends CustomAdapter {
                         Glide.with(this.context).load(url).error(R.drawable.users).centerCrop().into(holder.user_avatar_image);
                     }
                 }
+                if(message.getContentValue("user_id").equals(UserManager.getInstance().getCurrentUserId())) {
+                    holder.message_user.setTextColor(ContextCompat.getColor(super.context, R.color.message_white));
+                    holder.message_content.setTextColor(ContextCompat.getColor(super.context, R.color.message_white));
+                    holder.message_container.setBackgroundResource(R.drawable.bg_message_me);
+
+                }
+                else {
+                    holder.message_user.setTextColor(ContextCompat.getColor(super.context, R.color.message));
+                    holder.message_content.setTextColor(ContextCompat.getColor(super.context, R.color.message));
+                    holder.message_container.setBackgroundResource(R.drawable.bg_message);
+                }
             }
         }
         else {
@@ -102,12 +115,14 @@ public class MessagesAdapter extends CustomAdapter {
 
     static class ViewHolder {
 //        final ImageView image;
+        final RelativeLayout message_container;
         final TextView message_user;
         final TextView message_content;
         final ImageView user_avatar_image;
 
         ViewHolder(View view) {
 //            image = (ImageView) view.findViewById(R.id.image);
+            message_container = (RelativeLayout) view.findViewById(R.id.message_container);
             message_user = (TextView) view.findViewById(R.id.message_user);
             message_content = (TextView) view.findViewById(R.id.message_content);
             user_avatar_image = (ImageView) view.findViewById(R.id.user_avatar_image);
