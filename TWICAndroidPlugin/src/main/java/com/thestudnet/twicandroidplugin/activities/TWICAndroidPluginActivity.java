@@ -11,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -58,7 +59,7 @@ import pub.devrel.easypermissions.EasyPermissions;
  * Created by Baptiste PHILIBERT on 14/02/2017.
  */
 
-public class TWICAndroidPluginActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener, EasyPermissions.PermissionCallbacks {
+public class TWICAndroidPluginActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener, EasyPermissions.PermissionCallbacks, View.OnKeyListener {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin " + TWICAndroidPluginActivity.class.getSimpleName();
 
@@ -221,6 +222,17 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             // Hide the message panel
             this.messages_panel.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if(v.getId() == R.id.type_message) {
+            if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                this.sendMessage();
+                return true;
+            }
+        }
+        return false;
     }
 
     @OnClick(R2.id.button_send) void onButtonSendClicked() {
@@ -520,7 +532,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.findViewById(R.id.footer).setVisibility(View.GONE);
         // Show users fragment
         this.getSupportFragmentManager().beginTransaction()
-                .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_down, R.anim.slide_out_up)
+                .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_up, R.anim.slide_out_down)
                 .replace(R.id.container, UsersFragment.newInstance())
                 .addToBackStack(null)
                 .commit();
