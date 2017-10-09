@@ -228,6 +228,9 @@ public class APIClient {
                         contentValues.put("session", (String) jsonResponse.get("session"));
                         list.add(new GenericModel(contentValues));
 
+                        // Inject current user role
+                        HangoutManager.getInstance().addOrReplace(HangoutManager.HANGOUT_CURRENT_USER_ROLE, (String) jsonResponse.get("role"));
+
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_TOKBOX_DATA_RECEIVED, list);
                     }
                 }

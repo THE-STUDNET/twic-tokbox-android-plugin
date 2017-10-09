@@ -1,9 +1,12 @@
 package com.thestudnet.twicandroidplugin.managers;
 
 import android.content.ContentValues;
+import android.util.Log;
 
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -26,6 +29,8 @@ public class HangoutManager extends JsonManager {
     public static String HANGOUT_ACTIONFORCEUNPUSBLISH       = "forceUnpublish";
     public static String HANGOUT_ACTIONKICK                  = "kick";
 
+    public static String HANGOUT_CURRENT_USER_ROLE           = "role";
+
     /*
  {
  "autoPublishCamera":[{"roles":["academic","instructor"]}],
@@ -37,7 +42,12 @@ public class HangoutManager extends JsonManager {
  "askScreen":[{"roles":["admin","super_admin","academic","instructor"]}],
  "forceMute":[{"roles":["admin","super_admin","academic","instructor"]}],
  "forceUnpublish":[{"roles":["admin","super_admin","academic","instructor"]}],
- "kick":[{"roles":["admin","super_admin","academic"]}]}
+ "kick":[
+    {
+        "roles":
+            ["admin","super_admin","academic"]
+        }
+  ]}
 */
 
 /*
@@ -78,14 +88,32 @@ public class HangoutManager extends JsonManager {
         }
     }
 
-    public boolean getRule(String rule) {
+    public boolean getRule(String rule) throws JSONException {
         // TODO : remove before moving to production !
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHCAMERA)) return false;
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONAUTOPUBLISHMICROPHONE)) return false;
 //        if(rule.equals(HangoutManager.HANGOUT_ACTIONPUBLISH)) return false;
         JSONObject rules = HangoutManager.getInstance().getSettingsForKey(HangoutManager.HANGOUT_OPTIONSKEY, "rules");
         if(rules != null) {
-            return rules.optBoolean(rule, false);
+            JSONArray ruleContent = rules.optJSONArray(rule);
+            if(ruleContent != null && ruleContent.length() > 0) {
+                JSONArray content = ruleContent.optJSONObject(0).getJSONArray("roles");
+
+                // TODO REMOVE LOG
+                Log.d("HangoutManager", content.toString());
+
+                if(content != null && content.length() > 0) {
+                    for(int i = 0; i < content.length(); i++) {
+                        if(HangoutManager.getInstance().getRawValueForKey(HANGOUT_CURRENT_USER_ROLE).equals(content.optString(i))) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            else {
+                return rules.optBoolean(rule, false);
+            }
         }
         else {
             return false;
