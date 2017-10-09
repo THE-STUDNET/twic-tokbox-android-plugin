@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * INTERACTIVE LAYER
@@ -621,17 +622,8 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("event", HANGOUT_EVENT_STARTRECORD);
-                        param.put("date", DateUtils.getCurrentDateIso());
-
-                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
-
-                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        objectParams.put("name", "hangout");
-
-                        param.put("object", objectParams);
-
-                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_STARTARCHIVEPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -665,17 +657,8 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
-                        param.put("event", HANGOUT_EVENT_STOPRECORD);
-                        param.put("date", DateUtils.getCurrentDateIso());
-
-                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
-
-                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        objectParams.put("name", "hangout");
-
-                        param.put("object", objectParams);
-
-                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
+                        param.put("conversation_id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_STOPARCHIVEPATH, param, requestID);
                         // Send request
                         response = client.send(request);
                     }
@@ -708,6 +691,9 @@ public class APIClient {
                     JSONRPC2Response response = null;
 
                     try {
+                        HashMap<String, Object> root = new HashMap<String, Object>(1);
+                        ArrayList rootParams = new ArrayList(1);
+
                         param.put("event", eventName);
                         param.put("date", DateUtils.getCurrentDateIso());
 
@@ -718,7 +704,11 @@ public class APIClient {
 
                         param.put("object", objectParams);
 
-                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
+                        root.put("activities", rootParams);
+
+                        rootParams.add(param);
+
+                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, root, requestID);
 
 
                         // Send request
@@ -743,98 +733,105 @@ public class APIClient {
         }
     }
 
-    public void sendUserJoin() {
-        if(this.client != null) {
-            new Thread() {
-                public void run() {
-                    // Construct request
-                    int requestID = new RandomInt().nextNonNegative();
-                    HashMap<String, Object> param = new HashMap<>(1);
-                    //JSONObject jsonParams = new JSONObject();
-                    JSONRPC2Response response = null;
-
-                    try {
-                        param.put("event", HANGOUT_EVENT_JOIN);
-                        param.put("date", DateUtils.getCurrentDateIso());
-
-                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
-
-                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        objectParams.put("name", "hangout");
-
-                        param.put("object", objectParams);
-
-                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
-                        // Send request
-                        response = client.send(request);
-                    }
-//                    catch (JSONException e) {
-//                        Log.e(TAG, e.getLocalizedMessage());
+//    public void sendUserJoin() {
+//        if(this.client != null) {
+//            new Thread() {
+//                public void run() {
+//                    // Construct request
+//                    int requestID = new RandomInt().nextNonNegative();
+//                    HashMap<String, Object> param = new HashMap<>(1);
+//                    //JSONObject jsonParams = new JSONObject();
+//                    JSONRPC2Response response = null;
+//
+//                    try {
+//                        HashMap<String, Object> root = new HashMap<String, Object>(1);
+//                        ArrayList rootParams = new ArrayList(1);
+//
+//                        param.put("event", HANGOUT_EVENT_JOIN);
+//                        param.put("date", DateUtils.getCurrentDateIso());
+//
+//                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+//
+//                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//                        objectParams.put("name", "hangout");
+//
+//                        param.put("object", objectParams);
+//
+//                        root.put("activities", rootParams);
+//
+//                        rootParams.add(param);
+//
+//                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, root, requestID);
+//                        // Send request
+//                        response = client.send(request);
 //                    }
-                    catch (JSONRPC2SessionException e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                        Log.e(TAG, e.getMessage());
-                    }
-
-                    if(response != null && response.indicatesSuccess()) {
-                        Log.d(TAG, response.getResult().toString());
-                    }
-                    else if(response != null && response.getError() != null) {
-                        Log.e(TAG, response.getError().toString());
-                    }
-                    else {
-                        Log.e(TAG, "unknown error in sendUserJoin");
-                    }
-                }
-            }.start();
-        }
-    }
-
-    public void sendUserLeave() {
-        if(this.client != null) {
-            new Thread() {
-                public void run() {
-                    // Construct request
-                    int requestID = new RandomInt().nextNonNegative();
-                    HashMap<String, Object> param = new HashMap<>(1);
-                    //JSONObject jsonParams = new JSONObject();
-                    JSONRPC2Response response = null;
-
-                    try {
-                        param.put("event", HANGOUT_EVENT_LEAVE);
-                        param.put("date", DateUtils.getCurrentDateIso());
-
-                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
-
-                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
-                        objectParams.put("name", "hangout");
-
-                        param.put("object", objectParams);
-
-                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
-                        // Send request
-                        response = client.send(request);
-                    }
-//                    catch (JSONException e) {
+////                    catch (JSONException e) {
+////                        Log.e(TAG, e.getLocalizedMessage());
+////                    }
+//                    catch (JSONRPC2SessionException e) {
 //                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
 //                    }
-                    catch (JSONRPC2SessionException e) {
-                        Log.e(TAG, e.getLocalizedMessage());
-                        Log.e(TAG, e.getMessage());
-                    }
-
-                    if(response != null && response.indicatesSuccess()) {
-                        Log.d(TAG, response.getResult().toString());
-                    }
-                    else if(response != null && response.getError() != null) {
-                        Log.e(TAG, response.getError().toString());
-                    }
-                    else {
-                        Log.e(TAG, "unknown error in sendUserLeave");
-                    }
-                }
-            }.start();
-        }
-    }
+//
+//                    if(response != null && response.indicatesSuccess()) {
+//                        Log.d(TAG, response.getResult().toString());
+//                    }
+//                    else if(response != null && response.getError() != null) {
+//                        Log.e(TAG, response.getError().toString());
+//                    }
+//                    else {
+//                        Log.e(TAG, "unknown error in sendUserJoin");
+//                    }
+//                }
+//            }.start();
+//        }
+//    }
+//
+//    public void sendUserLeave() {
+//        if(this.client != null) {
+//            new Thread() {
+//                public void run() {
+//                    // Construct request
+//                    int requestID = new RandomInt().nextNonNegative();
+//                    HashMap<String, Object> param = new HashMap<>(1);
+//                    //JSONObject jsonParams = new JSONObject();
+//                    JSONRPC2Response response = null;
+//
+//                    try {
+//                        param.put("event", HANGOUT_EVENT_LEAVE);
+//                        param.put("date", DateUtils.getCurrentDateIso());
+//
+//                        HashMap<String, Object> objectParams = new HashMap<String, Object>(1);
+//
+//                        objectParams.put("id", SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY));
+//                        objectParams.put("name", "hangout");
+//
+//                        param.put("object", objectParams);
+//
+//                        JSONRPC2Request request = new JSONRPC2Request(TWIC_ACTIVITY_ADDPATH, param, requestID);
+//                        // Send request
+//                        response = client.send(request);
+//                    }
+////                    catch (JSONException e) {
+////                        Log.e(TAG, e.getLocalizedMessage());
+////                    }
+//                    catch (JSONRPC2SessionException e) {
+//                        Log.e(TAG, e.getLocalizedMessage());
+//                        Log.e(TAG, e.getMessage());
+//                    }
+//
+//                    if(response != null && response.indicatesSuccess()) {
+//                        Log.d(TAG, response.getResult().toString());
+//                    }
+//                    else if(response != null && response.getError() != null) {
+//                        Log.e(TAG, response.getError().toString());
+//                    }
+//                    else {
+//                        Log.e(TAG, "unknown error in sendUserLeave");
+//                    }
+//                }
+//            }.start();
+//        }
+//    }
 
 }

@@ -174,7 +174,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             // TODO : Write in firebase user is connected
 
             // Register "hangout.join" event with API
-            APIClient.getInstance().sendUserJoin();
+            APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_JOIN);
 
             // Stop listening to "sessionConnected" tokbox event
             this.isConnected.set(true);
@@ -330,7 +330,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                     MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_left, UserManager.getInstance().getDisplayName(userId)), userId, true);
 
                     // Register "hangout.leave" event with API
-                    APIClient.getInstance().sendUserLeave();
+                    APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LEAVE);
                 }
             }
         }

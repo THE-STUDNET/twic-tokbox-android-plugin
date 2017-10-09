@@ -171,7 +171,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @OnClick(R2.id.button_exit) void onButtonExitClicked() {
         // Register "hangout.leave" event with API
-        APIClient.getInstance().sendUserLeave();
+        APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LEAVE);
 
         // TODO - Remove Firebase "disconnect" rule.
 
