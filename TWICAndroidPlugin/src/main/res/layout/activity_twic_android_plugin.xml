@@ -250,15 +250,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:layout_gravity="center"
+                    android:layout_gravity="center|bottom"
+                    android:paddingBottom="@dimen/padding_small"
                     android:src="@drawable/users" />
 
                 <me.grantland.widget.AutofitTextView
                     android:id="@+id/users_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="@dimen/padding_small"
                     android:layout_gravity="top|right"
+                    android:gravity="top|right"
                     android:lines="1"
                     android:text="@string/users_count_text"
                     android:textColor="@color/text_hint"
