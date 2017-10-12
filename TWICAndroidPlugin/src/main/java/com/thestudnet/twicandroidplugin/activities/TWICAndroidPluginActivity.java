@@ -105,6 +105,8 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         this.type_message = (EditText) this.findViewById(R.id.type_message);
         this.new_message_state = (ImageView) this.findViewById(R.id.new_message_state);
 
+        this.type_message.setOnKeyListener(this);
+
         this.updateUsersCount();
 
         EventBus.getInstance().register(this);
