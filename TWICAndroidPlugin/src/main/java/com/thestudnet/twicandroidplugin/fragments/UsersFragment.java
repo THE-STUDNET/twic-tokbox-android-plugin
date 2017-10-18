@@ -15,6 +15,7 @@ import com.thestudnet.twicandroidplugin.adapters.UserAction;
 import com.thestudnet.twicandroidplugin.adapters.UsersAdapter;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
+import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.HangoutManager;
@@ -37,8 +38,11 @@ import butterknife.OnClick;
 
 public class UsersFragment extends CustomFragment implements ExpandableListView.OnChildClickListener, ExpandableListView.OnGroupClickListener {
 
+    private Object lock;
+
     private TextView title;
     private ExpandableListView usersListView;
+    private UsersAdapter adapter;
 
     List<JSONObject> listDataHeader;
     HashMap<String, List<UserAction>> listDataChild;
@@ -48,6 +52,7 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
      */
     public static UsersFragment newInstance() {
         UsersFragment fragment = new UsersFragment();
+        fragment.lock = new Object();
         return fragment;
     }
 
@@ -78,7 +83,8 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
         this.title.setText(this.getContext().getString(R.string.fragment_users_title, String.valueOf(this.listDataHeader.size())));
 
         this.usersListView = (ExpandableListView) view.findViewById(R.id.users_listview);
-        this.usersListView.setAdapter(new UsersAdapter(this.getContext(), listDataHeader, listDataChild));
+        this.adapter = new UsersAdapter(this.getContext(), listDataHeader, listDataChild);
+        this.usersListView.setAdapter(this.adapter);
         this.usersListView.setOnChildClickListener(this);
         this.usersListView.setOnGroupClickListener(this);
     }
@@ -235,10 +241,24 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
     @Subscribe
     public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
         if(event.getType() == APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED) {
-            this.prepareListData();
-            UsersAdapter adapter = new UsersAdapter(this.getContext(), listDataHeader, listDataChild);
-            this.usersListView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
+            synchronized (this.lock) {
+                this.prepareListData();
+                this.adapter = new UsersAdapter(this.getContext(), listDataHeader, listDataChild);
+                this.usersListView.setAdapter(this.adapter);
+                this.adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    @Subscribe
+    public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
+        if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_ADDED || event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED) {
+            synchronized (this.lock) {
+                this.prepareListData();
+//                this.adapter = new UsersAdapter(this.getContext(), listDataHeader, listDataChild);
+//                this.usersListView.setAdapter(this.adapter);
+                this.adapter.notifyDataSetChanged();
+            }
         }
     }
 

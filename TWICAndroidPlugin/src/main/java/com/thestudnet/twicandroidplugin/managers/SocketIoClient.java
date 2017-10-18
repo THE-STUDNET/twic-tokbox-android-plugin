@@ -86,7 +86,6 @@ public class SocketIoClient {
             this.ioSocket.off("authenticated", onAuthenticated);
             this.ioSocket.off("ch.message", onMessage);
         }
-        EventBus.getInstance().unregister(this);
     }
 
     private Emitter.Listener onConnect = new Emitter.Listener() {

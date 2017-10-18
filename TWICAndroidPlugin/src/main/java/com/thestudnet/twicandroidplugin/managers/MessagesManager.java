@@ -50,7 +50,6 @@ public class MessagesManager extends JsonManager {
     }
 
     public void unregisterMessageManager() {
-        EventBus.getInstance().unregister(this);
     }
 
     /**
@@ -192,15 +191,6 @@ public class MessagesManager extends JsonManager {
 
             // Load current messages
             APIClient.getInstance().getMessages();
-        }
-    }
-
-    @Subscribe
-    public void OnAPIInteraction(APIInteraction.OnAPIInteractionEvent event) {
-        if(event.getType() == APIInteraction.Type.ON_MESSAGES_RECEIVED) {
-            Log.d(TAG, "ON_MESSAGES_RECEIVED");
-
-            // Insert messages
         }
     }
 

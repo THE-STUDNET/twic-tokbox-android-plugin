@@ -31,6 +31,7 @@ public class TWICAndroidPlugin {
 
     private static TWICAndroidPlugin instance;
     public TWICAndroidPlugin() {
+        Log.d(TAG, "TWICAndroidPlugin NEW INSTANCE CREATED AND REGISTERED ON BUS");
         EventBus.getInstance().register(this);
     }
     public static TWICAndroidPlugin getInstance() {
@@ -83,7 +84,6 @@ public class TWICAndroidPlugin {
         SocketIoClient.getInstance().unregisterIoSocket();
         MessagesManager.getInstance().unregisterMessageManager();
 //        FirebaseClient.getInstance().unregisterFirebaseClient();
-        EventBus.getInstance().unregister(this);
     }
 
 }

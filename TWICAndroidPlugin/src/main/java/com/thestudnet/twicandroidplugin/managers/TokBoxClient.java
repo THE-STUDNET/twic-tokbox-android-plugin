@@ -120,7 +120,6 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             session.disconnect();
         }
 
-        EventBus.getInstance().unregister(this);
     }
 
     public void publish(boolean video, boolean audio) {
