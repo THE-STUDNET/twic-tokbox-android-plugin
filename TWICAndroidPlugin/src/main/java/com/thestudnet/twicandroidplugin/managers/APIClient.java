@@ -3,6 +3,7 @@ package com.thestudnet.twicandroidplugin.managers;
 import android.content.ContentValues;
 import android.util.Log;
 
+import com.opentok.android.Connection;
 import com.thestudnet.twicandroidplugin.communication.APIClientConfigurator;
 import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.MessageInteraction;
@@ -326,7 +327,7 @@ public class APIClient {
         }
     }
 
-    public void getNewUsers(final String userId) {
+    public void getNewUsers(final String userId, final Connection relatedUserConnection) {
         if(this.client != null) {
             new Thread() {
                 public void run() {
@@ -358,6 +359,8 @@ public class APIClient {
                         UserManager.getInstance().addOrReplace(userId, response.getResult().toString());
                         // Set user connection state to "connected"
                         UserManager.getInstance().setConnectionState(true, userId);
+                        // Set user connection
+                        UserManager.getInstance().addOrReplaceUserConnection(userId, relatedUserConnection);
 
                         APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
                     }

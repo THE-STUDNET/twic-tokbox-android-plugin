@@ -260,6 +260,8 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                     // NO
                     // Set user connection state to "connected"
                     UserManager.getInstance().setConnectionState(true, userId);
+                    // Set user connection
+                    UserManager.getInstance().addOrReplaceUserConnection(userId, connection);
                     APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
                     // Add "User joined" notification message in conversation panel
                     MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_joined, UserManager.getInstance().getDisplayName(userId)), userId, true);
@@ -278,7 +280,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             else {
                 // NO
                 // Get User from API
-                APIClient.getInstance().getNewUsers(userId);
+                APIClient.getInstance().getNewUsers(userId, connection);
             }
         }
 
@@ -321,16 +323,17 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                 // Check if user is YOU
                 if(!UserManager.getInstance().getCurrentUserId().equals(userId)) {
                     // NO
-                    // Set user connection state to "disconnected"
-                    UserManager.getInstance().setConnectionState(false, userId);
-                    APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
+                    // Remove user connection
+                    LinkedHashMap<String, Connection> userConnections = UserManager.getInstance().removeUserConnection(userId, connection);
+                    if(userConnections == null || (userConnections != null && userConnections.size() == 0)) {
+                        // Set user connection state to "disconnected"
+                        UserManager.getInstance().setConnectionState(false, userId);
+                        APIInteraction.getInstance().FireEvent(APIInteraction.Type.ON_USER_CONNECTION_STATE_CHANGED, null);
 
-                    // Add "User leave" notification message in conversation panel
-                    // TODO => with disconnect reason ?
-                    MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_left, UserManager.getInstance().getDisplayName(userId)), userId, true);
-
-                    // Register "hangout.leave" event with API
-                    APIClient.getInstance().registerEventName(APIClient.HANGOUT_EVENT_LEAVE);
+                        // Add "User leave" notification message in conversation panel
+                        // TODO => with disconnect reason ?
+                        MessagesManager.getInstance().insertAutomaticMessage(TWICAndroidPlugin.getInstance().getContext().getString(R.string.message_user_left, UserManager.getInstance().getDisplayName(userId)), userId, true);
+                    }
                 }
             }
         }
@@ -537,10 +540,16 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     }
 
     public void sendSignal(String signalName, String toUserId) {
-        if(this.session != null && this.subscribers != null && this.subscribers.size() > 0) {
-            Subscriber to = this.subscribers.get(toUserId);
-            if(to != null && to.getStream() != null && to.getStream().getConnection() != null) {
-                this.session.sendSignal(signalName, null, to.getStream().getConnection());
+//        if(this.session != null && this.subscribers != null && this.subscribers.size() > 0) {
+//            Subscriber to = this.subscribers.get(toUserId);
+//            if(to != null && to.getStream() != null && to.getStream().getConnection() != null) {
+//                this.session.sendSignal(signalName, null, to.getStream().getConnection());
+//            }
+//        }
+        if(this.session != null && UserManager.getInstance().getUserConnection(toUserId) != null) {
+            LinkedHashMap<String, Connection> userConnections = UserManager.getInstance().getUserConnection(toUserId);
+            for(Connection connection : userConnections.values()) {
+                this.session.sendSignal(signalName, null, connection);
             }
         }
     }

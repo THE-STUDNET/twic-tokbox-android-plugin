@@ -3,12 +3,15 @@ package com.thestudnet.twicandroidplugin.managers;
 import android.content.ContentValues;
 import android.util.Log;
 
+import com.opentok.android.Connection;
 import com.opentok.android.Publisher;
 import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
 import org.json.JSONObject;
+
+import java.util.LinkedHashMap;
 
 import static android.R.attr.value;
 
@@ -53,6 +56,8 @@ public class UserManager extends JsonManager {
     public static String USER_LOCAL_ACTIONIMAGEKEY      = "action_image";
     public static String USER_LOCAL_ACTIONISADMINKEY    = "is_admin";
 
+    private LinkedHashMap<String, LinkedHashMap<String, Connection>> usersConnections;
+
     private static UserManager instance;
     public UserManager() {
     }
@@ -61,9 +66,42 @@ public class UserManager extends JsonManager {
             UserManager minstance = new UserManager();
             instance = minstance;
             instance.contentValues = new ContentValues();
+            instance.usersConnections = new LinkedHashMap<>();
             return instance;
         } else {
             return instance;
+        }
+    }
+
+    /**
+     * Each user has a collection of Connection objects (the key is the connection id, the value is the connection object)
+     * @param userId
+     * @return
+     */
+    public LinkedHashMap<String, Connection> getUserConnection(String userId) {
+        return this.usersConnections.get(userId);
+    }
+
+    public void addOrReplaceUserConnection(String userId, Connection connection) {
+        if(this.getUserConnection(userId) == null) {
+            LinkedHashMap<String, Connection> connections = new LinkedHashMap<>(1);
+            connections.put(connection.getConnectionId(), connection);
+            this.usersConnections.put(userId, connections);
+        }
+        else {
+            LinkedHashMap<String, Connection> connections = this.getUserConnection(userId);
+            connections.put(connection.getConnectionId(), connection);
+        }
+    }
+
+    public LinkedHashMap<String, Connection> removeUserConnection(String userId, Connection connection) {
+        if(this.getUserConnection(userId) == null) {
+            return null;
+        }
+        else {
+            LinkedHashMap<String, Connection> connections = this.getUserConnection(userId);
+            connections.remove(connection.getConnectionId());
+            return connections;
         }
     }
 
