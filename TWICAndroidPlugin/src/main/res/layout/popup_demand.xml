@@ -22,7 +22,7 @@
         android:id="@+id/demand_text"
         android:layout_marginBottom="@dimen/element_margin"
         android:gravity="center"
-        android:lines="1"
+        android:maxLines="2"
         android:text="@string/demand_text_microphone"
         android:textColor="@color/text_grey"
         android:textSize="@dimen/text_small" />
