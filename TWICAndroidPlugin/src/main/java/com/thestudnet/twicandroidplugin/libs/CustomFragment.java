@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.activities.TWICAndroidPluginActivity;
 import com.thestudnet.twicandroidplugin.communication.ErrorMessage;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 
@@ -43,6 +44,12 @@ public class CustomFragment extends Fragment {
         this.alertDialog.setCancelable(true);
 
         return inflater.inflate(layout, container, false);
+    }
+
+    public void enableHeaderAndFooter(boolean enabled) {
+        if(this.getActivity() instanceof TWICAndroidPluginActivity) {
+            ((TWICAndroidPluginActivity) this.getActivity()).enableHeaderAndFooter(enabled);
+        }
     }
 
     @Override

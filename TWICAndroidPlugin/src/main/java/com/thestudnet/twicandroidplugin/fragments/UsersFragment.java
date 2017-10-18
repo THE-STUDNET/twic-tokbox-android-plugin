@@ -64,6 +64,8 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
 
         this.title = (TextView) rootView.findViewById(R.id.title);
 
+        super.enableHeaderAndFooter(false);
+
         return rootView;
     }
 
@@ -81,9 +83,15 @@ public class UsersFragment extends CustomFragment implements ExpandableListView.
         this.usersListView.setOnGroupClickListener(this);
     }
 
+    @Override
+    public void onDestroy() {
+        super.enableHeaderAndFooter(true);
+        super.onDestroy();
+    }
+
     /*
-     * Preparing the list data
-     */
+         * Preparing the list data
+         */
     private void prepareListData() {
         listDataHeader = new ArrayList<JSONObject>();
         listDataChild = new HashMap<String, List<UserAction>>();

@@ -125,12 +125,12 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
 
     @Override
     public void onBackStackChanged() {
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-            // Show header
-            this.findViewById(R.id.header).setVisibility(View.VISIBLE);
-            // Show footer
-            this.findViewById(R.id.footer).setVisibility(View.VISIBLE);
-        }
+//        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+//            // Show header
+//            this.findViewById(R.id.header).setVisibility(View.VISIBLE);
+//            // Show footer
+//            this.findViewById(R.id.footer).setVisibility(View.VISIBLE);
+//        }
     }
 
     /**************** EASY PERMISSIONS ****************/
@@ -550,11 +550,22 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         });
     }
 
+    public void enableHeaderAndFooter(boolean enabled) {
+        if(enabled) {
+            // Hide header
+            this.findViewById(R.id.header).setVisibility(View.VISIBLE);
+            // Hide footer
+            this.findViewById(R.id.footer).setVisibility(View.VISIBLE);
+        }
+        else {
+            // Hide header
+            this.findViewById(R.id.header).setVisibility(View.GONE);
+            // Hide footer
+            this.findViewById(R.id.footer).setVisibility(View.GONE);
+        }
+    }
+
     private void showUsersActivity() {
-        // Hide header
-        this.findViewById(R.id.header).setVisibility(View.GONE);
-        // Hide footer
-        this.findViewById(R.id.footer).setVisibility(View.GONE);
         // Show users fragment
         this.getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_up, R.anim.slide_out_down)
