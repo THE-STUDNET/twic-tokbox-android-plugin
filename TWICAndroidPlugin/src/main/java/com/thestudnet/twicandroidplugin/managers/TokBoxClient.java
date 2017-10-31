@@ -112,6 +112,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
                     subscriber.destroy();
                 }
             }
+            this.subscribers.clear();
 //            Iterator<Subscriber> iterator = this.subscribers.values().iterator();
 //            while (iterator.hasNext()) {
 //                Subscriber subscriber = iterator.next();
@@ -130,6 +131,9 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         if (session != null) {
             session.disconnect();
         }
+
+        // (re)Start listening to "sessionConnected" tokbox event
+        this.isConnected.set(false);
 
     }
 
