@@ -135,6 +135,9 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         // (re)Start listening to "sessionConnected" tokbox event
         this.isConnected.set(false);
 
+        // (re)Init archiving status
+        this.isArchiving.set(false);
+
     }
 
     public void publish(boolean video, boolean audio) {
