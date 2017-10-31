@@ -90,6 +90,9 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.d(TAG, "onCreate");
+
         this.setContentView(R.layout.activity_twic_android_plugin);
 
         this.usersDemands = new ArrayList<>();

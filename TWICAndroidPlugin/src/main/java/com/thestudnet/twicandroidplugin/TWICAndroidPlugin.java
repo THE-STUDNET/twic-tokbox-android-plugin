@@ -73,10 +73,12 @@ public class TWICAndroidPlugin {
     }
 
     public void onResume() {
+        Log.d(TAG, "onResume");
         TokBoxClient.getInstance().resumeSession();
     }
 
     public void onPause() {
+        Log.d(TAG, "onPause");
         TokBoxClient.getInstance().pauseSession();
     }
 
