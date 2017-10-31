@@ -9,9 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.opentok.android.Subscriber;
+import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
+
+import java.util.Iterator;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -22,6 +27,8 @@ public class VideoDetailFragment extends CustomFragment {
 
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberViewContainer;
+
+    private View mCurrentPublisherView = null;
 
     private String streamId;
 
@@ -61,7 +68,8 @@ public class VideoDetailFragment extends CustomFragment {
             }
             // Add view
             RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
-            mPublisherViewContainer.addView(TokBoxClient.getInstance().getPublisher().getView(), layoutParamsPublisher);
+            mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
+            mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
         }
         if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0 && TokBoxClient.getInstance().getSubscribers().get(this.streamId) != null) {
             // Remove parent views
@@ -78,23 +86,42 @@ public class VideoDetailFragment extends CustomFragment {
         }
     }
 
-//    @Override
-//    public void onStreamDropped(Session session, Stream stream) {
-//        Log.d(TAG, "onStreamDropped: Stream " + stream.getStreamId() + " dropped from session " + session.getSessionId());
-//
-//        if (OpenTokConfig.SUBSCRIBE_TO_SELF) {
-//            return;
-//        }
-//        if (mSubscriber == null) {
-//            return;
-//        }
-//
-//        if (mSubscriber.getStream().equals(stream)) {
-//            mSubscriberViewContainer.removeView(mSubscriber.getView());
-//            mSubscriber.destroy();
-//            mSubscriber = null;
-//        }
-//    }
+    @Subscribe
+    public void OnTokBoxInteraction(TokBoxInteraction.OnTokBoxInteractionEvent event) {
+        if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_ADDED) {
+            Log.d(TAG, "ON_SUBSCRIBER_ADDED");
+
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) {
+            Log.d(TAG, "ON_PUBLISHER_ADDED");
+            if(TokBoxClient.getInstance().getPublisher() != null) {
+                // Remove parent views
+                ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
+                if(publisherParent != null) {
+                    publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
+                }
+                // Add view
+                RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
+                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
+                mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
+            }
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED) {
+            Log.d(TAG, "ON_SUBSCRIBER_REMOVED");
+
+        }
+        else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) {
+            Log.d(TAG, "ON_PUBLISHER_REMOVED");
+            if(mCurrentPublisherView != null) {
+//                ViewGroup publisherParent = (ViewGroup) mCurrentPublisherView.getParent();
+//                if(publisherParent != null) {
+//                    publisherParent.removeView(mCurrentPublisherView);
+//                }
+            }
+        }
+    }
 
 
     @Override
