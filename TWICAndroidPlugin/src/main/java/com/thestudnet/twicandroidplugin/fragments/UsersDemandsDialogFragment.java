@@ -84,7 +84,7 @@ public class UsersDemandsDialogFragment extends android.support.v4.app.DialogFra
         int width = size.x;
         int height = size.y;
 
-        window.setLayout((int) (width * 0.60), (int) (width * 0.60));
+        window.setLayout((int) (width * 0.80), (int) (width * 0.80));
         window.setGravity(Gravity.CENTER);
 
         /*
