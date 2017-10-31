@@ -11,9 +11,8 @@ import com.thestudnet.twicandroidplugin.libs.JsonManager;
 
 import org.json.JSONObject;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-
-import static android.R.attr.value;
 
 /**
  * INTERACTIVE LAYER
@@ -128,11 +127,24 @@ public class UserManager extends JsonManager {
     }
 
     public boolean isSharingAudio(String userId) {
-        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null && subscriber.getStream() != null) {
-            return subscriber.getStream().hasAudio();
+        LinkedHashMap<String, Subscriber> userSubscribers = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(userSubscribers != null) {
+            Iterator<Subscriber> subscribers = userSubscribers.values().iterator();
+            while (subscribers.hasNext()) {
+                Subscriber subscriber = subscribers.next();
+                if(subscriber.getStream().getStreamVideoType() != Stream.StreamVideoType.StreamVideoTypeScreen) {
+                    if(subscriber.getStream().hasAudio()) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
+//        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+//        if(subscriber != null && subscriber.getStream() != null) {
+//            return subscriber.getStream().hasAudio();
+//        }
+//        return false;
     }
 
     public boolean isCurrentUserSharingCamera() {
@@ -146,13 +158,24 @@ public class UserManager extends JsonManager {
     }
 
     public boolean isSharingCamera(String userId) {
-        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null && subscriber.getStream() != null) {
-            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera) {
-                return true;
+        LinkedHashMap<String, Subscriber> userSubscribers = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(userSubscribers != null) {
+            Iterator<Subscriber> subscribers = userSubscribers.values().iterator();
+            while (subscribers.hasNext()) {
+                Subscriber subscriber = subscribers.next();
+                if(subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera && subscriber.getStream().hasVideo()) {
+                    return true;
+                }
             }
         }
         return false;
+//        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+//        if(subscriber != null && subscriber.getStream() != null) {
+//            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeCamera) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public boolean isCurrentUserSharingScreen() {
@@ -166,13 +189,24 @@ public class UserManager extends JsonManager {
     }
 
     public boolean isSharingScreen(String userId) {
-        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
-        if(subscriber != null && subscriber.getStream() != null) {
-            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen) {
-                return true;
+        LinkedHashMap<String, Subscriber> userSubscribers = TokBoxClient.getInstance().getSubscribers().get(userId);
+        if(userSubscribers != null) {
+            Iterator<Subscriber> subscribers = userSubscribers.values().iterator();
+            while (subscribers.hasNext()) {
+                Subscriber subscriber = subscribers.next();
+                if(subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen && subscriber.getStream().hasVideo()) {
+                    return true;
+                }
             }
         }
         return false;
+//        Subscriber subscriber = TokBoxClient.getInstance().getSubscribers().get(userId);
+//        if(subscriber != null && subscriber.getStream() != null) {
+//            if(subscriber.getStream().hasVideo() && subscriber.getStream().getStreamVideoType() == Stream.StreamVideoType.StreamVideoTypeScreen) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public void setConnectionState(boolean value, String forUserId) {

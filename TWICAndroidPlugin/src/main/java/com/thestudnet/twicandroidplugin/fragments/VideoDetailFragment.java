@@ -17,6 +17,7 @@ import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -71,18 +72,34 @@ public class VideoDetailFragment extends CustomFragment {
             mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
             mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
         }
-        if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0 && TokBoxClient.getInstance().getSubscribers().get(this.streamId) != null) {
-            // Remove parent views
-            ViewGroup subscriberParent = (ViewGroup) TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView().getParent();
-            if(subscriberParent != null) {
-                subscriberParent.removeView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView());
+        if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0) {
+            boolean foundId = false;
+            Iterator<LinkedHashMap<String, Subscriber>> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            while (iterator.hasNext()) {
+                LinkedHashMap<String, Subscriber> users = iterator.next();
+                Iterator<Subscriber> subscribers = users.values().iterator();
+                while (subscribers.hasNext()) {
+                    Subscriber subscriber = subscribers.next();
+                    if(subscriber.getStream().getStreamId().equals(this.streamId)) {
+                        // Remove parent views
+                        ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                        if(subscriberParent != null) {
+                            subscriberParent.removeView(subscriber.getView());
+                        }
+                        // Add views
+                        RelativeLayout.LayoutParams layoutParamsSubscriber = new RelativeLayout.LayoutParams(
+                                getResources().getDisplayMetrics().widthPixels,
+                                getResources().getDisplayMetrics().heightPixels
+                        );
+                        mSubscriberViewContainer.addView(subscriber.getView(), layoutParamsSubscriber);
+                        foundId = true;
+                        break;
+                    }
+                    if(foundId) {
+                        break;
+                    }
+                }
             }
-            // Add views
-            RelativeLayout.LayoutParams layoutParamsSubscriber = new RelativeLayout.LayoutParams(
-                    getResources().getDisplayMetrics().widthPixels,
-                    getResources().getDisplayMetrics().heightPixels
-            );
-            mSubscriberViewContainer.addView(TokBoxClient.getInstance().getSubscribers().get(this.streamId).getView(), layoutParamsSubscriber);
         }
     }
 

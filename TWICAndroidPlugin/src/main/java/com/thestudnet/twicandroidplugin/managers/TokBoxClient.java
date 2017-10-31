@@ -62,12 +62,12 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
         return publisher;
     }
 
-    public LinkedHashMap<String, Subscriber> getSubscribers() {
+    public LinkedHashMap<String, LinkedHashMap<String, Subscriber>> getSubscribers() {
         return subscribers;
     }
 
     private Publisher publisher;
-    private LinkedHashMap<String, Subscriber> subscribers = new LinkedHashMap<>();
+    private LinkedHashMap<String, LinkedHashMap<String, Subscriber>> subscribers = new LinkedHashMap<>();
 
     private static TokBoxClient instance;
     public TokBoxClient() {
@@ -102,12 +102,22 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public void disconnectSession() {
 
         if(this.subscribers != null && this.subscribers.size() > 0) {
-            Iterator<Subscriber> iterator = this.subscribers.values().iterator();
+            Iterator<LinkedHashMap<String, Subscriber>> iterator = this.subscribers.values().iterator();
             while (iterator.hasNext()) {
-                Subscriber subscriber = iterator.next();
-                session.unsubscribe(subscriber);
-                subscriber.destroy();
+                LinkedHashMap<String, Subscriber> users = iterator.next();
+                Iterator<Subscriber> subscribers = users.values().iterator();
+                while (subscribers.hasNext()) {
+                    Subscriber subscriber = subscribers.next();
+                    session.unsubscribe(subscriber);
+                    subscriber.destroy();
+                }
             }
+//            Iterator<Subscriber> iterator = this.subscribers.values().iterator();
+//            while (iterator.hasNext()) {
+//                Subscriber subscriber = iterator.next();
+//                session.unsubscribe(subscriber);
+//                subscriber.destroy();
+//            }
             this.subscribers = null;
         }
 
@@ -417,7 +427,14 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             mSubscriber.getView().setTag(userId);
 
             mSubscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE, BaseVideoRenderer.STYLE_VIDEO_FILL);
-            this.subscribers.put(userId, mSubscriber);
+            LinkedHashMap<String, Subscriber> userSubscribers = this.subscribers.get(userId);
+            if(userSubscribers == null) {
+                this.subscribers.put(userId, new LinkedHashMap<String, Subscriber>());
+            }
+            userSubscribers = this.subscribers.get(userId);
+            userSubscribers.put(mSubscriber.getStream().getStreamId(), mSubscriber);
+
+//            this.subscribers.put(userId, mSubscriber);
 
             mSubscriber.setVideoListener(this);
 
@@ -462,15 +479,30 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
             String userId = user.optString("id");
 
             if(this.subscribers.containsKey(userId)) {
-                this.session.unsubscribe(this.subscribers.get(userId));
-                this.subscribers.get(userId).destroy();
-                this.subscribers.remove(userId);
+                LinkedHashMap<String, Subscriber> userSubscribers = this.subscribers.get(userId);
+                Subscriber subscriber = userSubscribers.get(stream.getStreamId());
+                if(subscriber != null) {
+                    this.session.unsubscribe(subscriber);
+                    subscriber.destroy();
+                    userSubscribers.remove(stream.getStreamId());
+                    if(userSubscribers.size() == 0) {
+                        this.subscribers.remove(userId);
+                    }
+                    ArrayList<GenericModel> list = new ArrayList<>(1);
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put("id", userId);
+                    list.add(new GenericModel(contentValues));
+                    TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
+                }
+//                this.session.unsubscribe(this.subscribers.get(userId));
+//                this.subscribers.get(userId).destroy();
+//                this.subscribers.remove(userId);
 
-                ArrayList<GenericModel> list = new ArrayList<>(1);
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("id", userId);
-                list.add(new GenericModel(contentValues));
-                TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
+//                ArrayList<GenericModel> list = new ArrayList<>(1);
+//                ContentValues contentValues = new ContentValues();
+//                contentValues.put("id", userId);
+//                list.add(new GenericModel(contentValues));
+//                TokBoxInteraction.getInstance().FireEvent(TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED, list);
             }
         }
     }

@@ -26,6 +26,7 @@ import com.thestudnet.twicandroidplugin.models.GenericModel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -100,17 +101,34 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
             mPublisher.getView().setOnClickListener(this);
         }
 
-        Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+        Iterator<LinkedHashMap<String, Subscriber>> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
         while (iterator.hasNext()) {
-            Subscriber subscriber = iterator.next();
-            subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
-            ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
-            if(subscriberParent != null) {
-                subscriberParent.removeView(subscriber.getView());
+            LinkedHashMap<String, Subscriber> users = iterator.next();
+            Iterator<Subscriber> subscribers = users.values().iterator();
+            while (subscribers.hasNext()) {
+                Subscriber subscriber = subscribers.next();
+                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                subscriber.getView().setTag(subscriber.getStream().getStreamId());
+                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                if(subscriberParent != null) {
+                    subscriberParent.removeView(subscriber.getView());
+                }
+                mContainer.addView(subscriber.getView());
+                subscriber.getView().setOnClickListener(this);
             }
-            mContainer.addView(subscriber.getView());
-            subscriber.getView().setOnClickListener(this);
         }
+
+//        Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+//        while (iterator.hasNext()) {
+//            Subscriber subscriber = iterator.next();
+//            subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+//            ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+//            if(subscriberParent != null) {
+//                subscriberParent.removeView(subscriber.getView());
+//            }
+//            mContainer.addView(subscriber.getView());
+//            subscriber.getView().setOnClickListener(this);
+//        }
 
         calculateLayout();
 
@@ -204,23 +222,46 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
             }
             */
 
-            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
             int i = 0;
+            Iterator<LinkedHashMap<String, Subscriber>> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
             while (iterator.hasNext()) {
-                Subscriber subscriber = iterator.next();
-                if(this.subscribers.get() == i) {
-                    subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
-                    // Remove parent view
-                    ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
-                    if(subscriberParent != null) {
-                        subscriberParent.removeView(subscriber.getView());
+                LinkedHashMap<String, Subscriber> users = iterator.next();
+                Iterator<Subscriber> subscribers = users.values().iterator();
+                while (subscribers.hasNext()) {
+                    Subscriber subscriber = subscribers.next();
+                    if(this.subscribers.get() == i) {
+                        subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                        subscriber.getView().setTag(subscriber.getStream().getStreamId());
+                        // Remove parent view
+                        ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                        if(subscriberParent != null) {
+                            subscriberParent.removeView(subscriber.getView());
+                        }
+                        mContainer.addView(subscriber.getView());
+                        subscriber.getView().setOnClickListener(this);
+                        break;
                     }
-                    mContainer.addView(subscriber.getView());
-                    subscriber.getView().setOnClickListener(this);
-                    break;
+                    i++;
                 }
-                i++;
             }
+
+//            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+//            int i = 0;
+//            while (iterator.hasNext()) {
+//                Subscriber subscriber = iterator.next();
+//                if(this.subscribers.get() == i) {
+//                    subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+//                    // Remove parent view
+//                    ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+//                    if(subscriberParent != null) {
+//                        subscriberParent.removeView(subscriber.getView());
+//                    }
+//                    mContainer.addView(subscriber.getView());
+//                    subscriber.getView().setOnClickListener(this);
+//                    break;
+//                }
+//                i++;
+//            }
 
             calculateLayout();
         }
@@ -265,17 +306,33 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
                 mPublisher.getView().setOnClickListener(this);
             }
 
-            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            Iterator<LinkedHashMap<String, Subscriber>> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
             while (iterator.hasNext()) {
-                Subscriber subscriber = iterator.next();
-                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
-                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
-                if(subscriberParent != null) {
-                    subscriberParent.removeView(subscriber.getView());
+                LinkedHashMap<String, Subscriber> users = iterator.next();
+                Iterator<Subscriber> subscribers = users.values().iterator();
+                while (subscribers.hasNext()) {
+                    Subscriber subscriber = subscribers.next();
+                    subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                    ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                    if(subscriberParent != null) {
+                        subscriberParent.removeView(subscriber.getView());
+                    }
+                    mContainer.addView(subscriber.getView());
+                    subscriber.getView().setOnClickListener(this);
                 }
-                mContainer.addView(subscriber.getView());
-                subscriber.getView().setOnClickListener(this);
             }
+
+//            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+//            while (iterator.hasNext()) {
+//                Subscriber subscriber = iterator.next();
+//                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+//                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+//                if(subscriberParent != null) {
+//                    subscriberParent.removeView(subscriber.getView());
+//                }
+//                mContainer.addView(subscriber.getView());
+//                subscriber.getView().setOnClickListener(this);
+//            }
 
             calculateLayout();
 
@@ -291,17 +348,33 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
                 mPublisher = null;
             }
 
-            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+            Iterator<LinkedHashMap<String, Subscriber>> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
             while (iterator.hasNext()) {
-                Subscriber subscriber = iterator.next();
-                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
-                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
-                if(subscriberParent != null) {
-                    subscriberParent.removeView(subscriber.getView());
+                LinkedHashMap<String, Subscriber> users = iterator.next();
+                Iterator<Subscriber> subscribers = users.values().iterator();
+                while (subscribers.hasNext()) {
+                    Subscriber subscriber = subscribers.next();
+                    subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+                    ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+                    if(subscriberParent != null) {
+                        subscriberParent.removeView(subscriber.getView());
+                    }
+                    mContainer.addView(subscriber.getView());
+                    subscriber.getView().setOnClickListener(this);
                 }
-                mContainer.addView(subscriber.getView());
-                subscriber.getView().setOnClickListener(this);
             }
+
+//            Iterator<Subscriber> iterator = TokBoxClient.getInstance().getSubscribers().values().iterator();
+//            while (iterator.hasNext()) {
+//                Subscriber subscriber = iterator.next();
+//                subscriber.getView().setId(getResIdForSubscriberIndex(this.subscribers.getAndAdd(1)));
+//                ViewGroup subscriberParent = (ViewGroup) subscriber.getView().getParent();
+//                if(subscriberParent != null) {
+//                    subscriberParent.removeView(subscriber.getView());
+//                }
+//                mContainer.addView(subscriber.getView());
+//                subscriber.getView().setOnClickListener(this);
+//            }
 
             calculateLayout();
         }
