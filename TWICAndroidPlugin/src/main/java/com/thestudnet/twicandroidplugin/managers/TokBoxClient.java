@@ -118,7 +118,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
 //                session.unsubscribe(subscriber);
 //                subscriber.destroy();
 //            }
-            this.subscribers = null;
+//            this.subscribers = null;
         }
 
         if(this.publisher != null) {
