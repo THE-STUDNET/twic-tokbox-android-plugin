@@ -140,7 +140,7 @@
                 android:layout_centerVertical="true"
                 android:layout_gravity="bottom|left"
                 android:background="@color/info_blue"
-                android:scaleType="center"
+                android:scaleType="centerInside"
                 android:src="@drawable/demand_camera"
                 app:riv_border_color="@android:color/transparent"
                 app:riv_border_width="0dip"
