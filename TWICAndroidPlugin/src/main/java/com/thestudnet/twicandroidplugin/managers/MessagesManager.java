@@ -27,6 +27,11 @@ public class MessagesManager extends JsonManager {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin.managers." + MessagesManager.class.getSimpleName();
 
+    public int getOldestId() {
+        return oldestId;
+    }
+    private int oldestId = -1;
+
     private ArrayList<GenericModel> messages;
 
     private static MessagesManager instance;
@@ -110,6 +115,22 @@ public class MessagesManager extends JsonManager {
                             String key = iter.next();
                             String value = item.optString(key, "");
                             values.put(key, value);
+                            if(key.equals("id")) {
+                                try {
+                                    int id = Integer.parseInt(value);
+                                    if(this.oldestId != -1) {
+                                        if(id < this.oldestId) {
+                                            this.oldestId = id;
+                                        }
+                                    }
+                                    else {
+                                        this.oldestId = id;
+                                    }
+                                }
+                                catch (NumberFormatException e) {
+                                    Log.d(TAG, e.getLocalizedMessage());
+                                }
+                            }
                         }
                         if(atTheEnd) {
                             this.messages.add(new GenericModel(values));
@@ -190,6 +211,15 @@ public class MessagesManager extends JsonManager {
 
             // Load current messages
             APIClient.getInstance().getMessages();
+        }
+        else if (event.getType() == TokBoxInteraction.Type.ON_SESSION_DISCONNECTED) {
+            Log.d(TAG, "ON_SESSION_DISCONNECTED");
+
+            // Create current messages
+            this.messages.clear();
+
+            // Clear oldest id
+            this.oldestId = -1;
         }
     }
 

@@ -12,7 +12,6 @@ import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
 import com.thestudnet.twicandroidplugin.managers.MessagesManager;
-import com.thestudnet.twicandroidplugin.models.GenericModel;
 
 /**
  * INTERACTIVE LAYER
@@ -65,10 +64,14 @@ public class MessagesListView extends ListView {
                     int offset = (v == null) ? 0 : v.getTop();
                     if (offset == 0) {
                         // reached the top:
-                        if(adapter.getCount() > 0) {
-                            GenericModel message = (GenericModel) adapter.getItem(0);
+//                        if(adapter.getCount() > 0) {
+//                            GenericModel message = (GenericModel) adapter.getItem(0);
+//                            // Get old(er) messages
+//                            APIClient.getInstance().getMessagesBeforeMessageId(message.getContentValue("id"));
+//                        }
+                        if(MessagesManager.getInstance().getOldestId() != -1) {
                             // Get old(er) messages
-                            APIClient.getInstance().getMessagesBeforeMessageId(message.getContentValue("id"));
+                            APIClient.getInstance().getMessagesBeforeMessageId(String.valueOf(MessagesManager.getInstance().getOldestId()));
                         }
                         return;
                     }

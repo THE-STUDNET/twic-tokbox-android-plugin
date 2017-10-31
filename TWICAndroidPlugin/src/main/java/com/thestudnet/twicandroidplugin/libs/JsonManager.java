@@ -32,6 +32,7 @@ public class JsonManager {
     }
 
     public void configure(String settings) {
+        this.contentValues = new ContentValues();
         try {
             JSONObject jsonSettings = new JSONObject(settings);
             Iterator<String> iter = jsonSettings.keys();
