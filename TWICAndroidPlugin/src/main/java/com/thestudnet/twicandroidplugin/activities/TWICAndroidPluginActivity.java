@@ -598,9 +598,16 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
         }
         else {
             this.publish_camera.setImageResource(R.drawable.ask_publish_camera);
-            this.publish_camera.setVisibility(View.VISIBLE);
             this.publish_mic.setImageResource(R.drawable.ask_publish_mic);
-            this.publish_mic.setVisibility(View.VISIBLE);
+            if(!UserManager.getInstance().isCurrentUserSharingCamera()
+            && !UserManager.getInstance().isCurrentUserSharingAudio()) {
+                this.publish_camera.setVisibility(View.VISIBLE);
+                this.publish_mic.setVisibility(View.VISIBLE);
+            }
+            else {
+                this.publish_camera.setVisibility(View.GONE);
+                this.publish_mic.setVisibility(View.GONE);
+            }
         }
     }
 
