@@ -454,6 +454,9 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             if(this.usersDemands.get(0).split("_#_")[0].contains("camera")) {
                 demand_type.setImageResource(R.drawable.demand_camera);
             }
+            else if(this.usersDemands.get(0).split("_#_")[0].contains("screen")) {
+                demand_type.setImageResource(R.drawable.demand_screen);
+            }
             else {
                 demand_type.setImageResource(R.drawable.demand_mic);
             }
@@ -756,6 +759,18 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
                     // TRUE
                     // Notify user that his request has been declined
                     this.cancelDialog.show();
+                }
+            }
+            else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_SCREENAUTHORIZATION)) {
+                // check if YOU have "askScreen" permission
+                if(HangoutManager.getInstance().getRule(HangoutManager.HANGOUT_ACTIONASKSCREEN)) {
+                    // TRUE
+                    String demand = TokBoxClient.SIGNALTYPE_SCREENAUTHORIZATION + "_#_" + ((String) event.getData().get(1));
+                    if(!this.usersDemands.contains(demand)) {
+                        this.usersDemands.add(demand);
+                        // Show on interface User screen sharing demand
+                        this.updateUsersDemands();
+                    }
                 }
             }
             else if(((String) event.getData().get(0)).equals(TokBoxClient.SIGNALTYPE_CANCELSCREENAUTHORIZATION)) {

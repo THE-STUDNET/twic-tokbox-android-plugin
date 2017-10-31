@@ -50,6 +50,7 @@ public class TokBoxClient implements Session.SessionListener, Session.Connection
     public static String SIGNALTYPE_FORCEUNPUBLISHSCREEN          = "hgt_force_unpublish_screen";
     public static String SIGNALTYPE_SCREENREQUESTED               = "hgt_screen_requested";
     public static String SIGNALTYPE_CANCELSCREENAUTHORIZATION     = "hgt_cancel_screen_authorization";
+    public static String SIGNALTYPE_SCREENAUTHORIZATION           = "hgt_screen_authorization";
 
 
     private Session session;

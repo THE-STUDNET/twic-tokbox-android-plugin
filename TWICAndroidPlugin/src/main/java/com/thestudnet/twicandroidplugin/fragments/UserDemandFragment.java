@@ -54,13 +54,19 @@ public class UserDemandFragment extends CustomFragment implements View.OnClickLi
                 demand_icon.setImageResource(R.drawable.user_action_camera);
                 demand_text.setText(getResources().getString(R.string.demand_text_camera, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)));
 
-                getArguments().putInt("demandType", 1); // 1 = camera, 2 = microphone
+                getArguments().putInt("demandType", 1); // 1 = camera, 2 = microphone, 3 = screen
             }
             else if(userDemand[0].equals(TokBoxClient.SIGNALTYPE_MICROPHONEAUTHORIZATION)) {
                 demand_icon.setImageResource(R.drawable.user_action_mic);
                 demand_text.setText(getResources().getString(R.string.demand_text_microphone, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)));
 
-                getArguments().putInt("demandType", 2); // 1 = camera, 2 = microphone
+                getArguments().putInt("demandType", 2); // 1 = camera, 2 = microphone, 3 = screen
+            }
+            else if(userDemand[0].equals(TokBoxClient.SIGNALTYPE_SCREENAUTHORIZATION)) {
+                demand_icon.setImageResource(R.drawable.user_action_screen);
+                demand_text.setText(getResources().getString(R.string.demand_text_screen, user.optString(UserManager.USER_FIRSTNAMEKEY) + " " + user.optString(UserManager.USER_LASTNAMEKEY)));
+
+                getArguments().putInt("demandType", 3); // 1 = camera, 2 = microphone, 3 = screen
             }
 
             view.findViewById(R.id.button_deny).setOnClickListener(this);
@@ -73,7 +79,7 @@ public class UserDemandFragment extends CustomFragment implements View.OnClickLi
     @Override
     public void onClick(View v) {
         String[] userDemand = getArguments().getString("userDemand").split("_#_");
-        if(getArguments().getInt("demandType") == 1) { // 1 = camera, 2 = microphone
+        if(getArguments().getInt("demandType") == 1) { // 1 = camera, 2 = microphone, 3 = screen
             if(v.getId() == R.id.button_deny) {
                 // Signal "hgt_cancel_camera_authorization" event via tokbox for user ID
                 TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CANCELCAMERAAUTHORIZATION, userDemand[1]);
@@ -91,7 +97,7 @@ public class UserDemandFragment extends CustomFragment implements View.OnClickLi
                 FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_USER_DEMAND_REMOVED, list);
             }
         }
-        else if(getArguments().getInt("demandType") == 2) { // 1 = camera, 2 = microphone
+        else if(getArguments().getInt("demandType") == 2) { // 1 = camera, 2 = microphone, 3 = screen
             if(v.getId() == R.id.button_deny) {
                 // Signal "hgt_cancel_microphone_authorization" event via tokbox for user ID
                 TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CANCELMICROPHONEAUTHORIZATION, userDemand[1]);
@@ -103,6 +109,24 @@ public class UserDemandFragment extends CustomFragment implements View.OnClickLi
             else if(v.getId() == R.id.button_accept) {
                 // Signal "hgt_microphone_requested" event via tokbox for user ID
                 TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_MICROPHONEREQUESTED, userDemand[1]);
+                // Notify dataset changed
+                ArrayList<String> list = new ArrayList<>(1);
+                list.add(getArguments().getString("userDemand"));
+                FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_USER_DEMAND_REMOVED, list);
+            }
+        }
+        else if(getArguments().getInt("demandType") == 3) { // 1 = camera, 2 = microphone, 3 = screen
+            if(v.getId() == R.id.button_deny) {
+                // Signal "hgt_cancel_microphone_authorization" event via tokbox for user ID
+                TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_CANCELSCREENAUTHORIZATION, userDemand[1]);
+                // Notify dataset changed
+                ArrayList<String> list = new ArrayList<>(1);
+                list.add(getArguments().getString("userDemand"));
+                FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_USER_DEMAND_REMOVED, list);
+            }
+            else if(v.getId() == R.id.button_accept) {
+                // Signal "hgt_microphone_requested" event via tokbox for user ID
+                TokBoxClient.getInstance().sendSignal(TokBoxClient.SIGNALTYPE_SCREENREQUESTED, userDemand[1]);
                 // Notify dataset changed
                 ArrayList<String> list = new ArrayList<>(1);
                 list.add(getArguments().getString("userDemand"));

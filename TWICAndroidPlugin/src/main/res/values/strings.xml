@@ -70,6 +70,7 @@
 
     <string name="demand_text_camera">Allow %1$s to share his camera</string>
     <string name="demand_text_microphone">Allow %1$s to share his microphone</string>
+    <string name="demand_text_screen">Allow %1$s to share his screen</string>
 
     <string name="confirm_text_camera">Do you want to share your camera ?</string>
     <string name="confirm_text_microphone">Do you want to share your microphone ?</string>

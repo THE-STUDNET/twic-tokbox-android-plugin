@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import com.squareup.otto.Subscribe;
-import com.thestudnet.twicandroidplugin.events.APIInteraction;
 import com.thestudnet.twicandroidplugin.events.EventBus;
 import com.thestudnet.twicandroidplugin.events.MessageInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
@@ -37,6 +36,7 @@ public class MessagesManager extends JsonManager {
         if(instance == null) {
             MessagesManager mInstance = new MessagesManager();
             instance = mInstance;
+            EventBus.getInstance().register(instance);
             instance.contentValues = new ContentValues();
             instance.messages = new ArrayList<>();
             return instance;
@@ -46,7 +46,6 @@ public class MessagesManager extends JsonManager {
     }
 
     public void registerMessageManager() {
-        EventBus.getInstance().register(this);
     }
 
     public void unregisterMessageManager() {
