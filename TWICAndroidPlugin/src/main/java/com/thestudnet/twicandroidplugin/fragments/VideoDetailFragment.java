@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.opentok.android.Subscriber;
@@ -101,6 +103,8 @@ public class VideoDetailFragment extends CustomFragment {
                 }
             }
         }
+
+        this.updateUserDemandsPosition();
     }
 
     @Subscribe
@@ -140,6 +144,12 @@ public class VideoDetailFragment extends CustomFragment {
         }
     }
 
+    private void updateUserDemandsPosition() {
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0, getResources().getDimensionPixelSize(R.dimen.publisherview_width), 0, 0);
+        layoutParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
+        this.getActivity().findViewById(R.id.user_demand).setLayoutParams(layoutParams);
+    }
 
     @Override
     public void onResume() {

@@ -1,16 +1,20 @@
 package com.thestudnet.twicandroidplugin.fragments;
 
 import android.content.ContentValues;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.opentok.android.Publisher;
@@ -153,6 +157,8 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
             }
         }
         */
+
+        this.updateUserDemandsPosition();
     }
 
 //    @OnClick(R2.id.publisherview) void onPublisherviewClicked() {
@@ -515,6 +521,13 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
         }
 
         set.applyToLayout(mContainer, true);
+    }
+
+    private void updateUserDemandsPosition() {
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0, 0, 0, 0);
+        layoutParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
+        this.getActivity().findViewById(R.id.user_demand).setLayoutParams(layoutParams);
     }
 
     @Override
