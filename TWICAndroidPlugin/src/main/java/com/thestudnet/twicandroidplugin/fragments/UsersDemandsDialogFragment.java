@@ -97,6 +97,7 @@ public class UsersDemandsDialogFragment extends android.support.v4.app.DialogFra
             this.usersDemandsAdapter.notifyDataSetChanged();
         }
         */
+
         this.usersDemandsAdapter = new UsersDemandsAdapter(getChildFragmentManager(), this.usersDemands);
         this.pager.setAdapter(this.usersDemandsAdapter);
         this.pageIndicatorView.setCount(this.usersDemands.size());
