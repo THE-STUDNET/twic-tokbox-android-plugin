@@ -201,6 +201,12 @@ public class VideoGridFragment extends CustomFragment implements View.OnClickLis
                 FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, list);
             }
             */
+
+            if(TokBoxClient.getInstance().getPublisher() != null) {
+                mPublisher = TokBoxClient.getInstance().getPublisher();
+                mPublisher.getView().setOnClickListener(null);
+            }
+
             ArrayList<GenericModel> list = new ArrayList<>(1);
             ContentValues contentValues = new ContentValues();
             contentValues.put("stream_id", (String) view.getTag());

@@ -1,8 +1,10 @@
 package com.thestudnet.twicandroidplugin.fragments;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,17 +16,20 @@ import android.widget.RelativeLayout;
 import com.opentok.android.Subscriber;
 import com.squareup.otto.Subscribe;
 import com.thestudnet.twicandroidplugin.R;
+import com.thestudnet.twicandroidplugin.events.FragmentInteraction;
 import com.thestudnet.twicandroidplugin.events.TokBoxInteraction;
 import com.thestudnet.twicandroidplugin.libs.CustomFragment;
 import com.thestudnet.twicandroidplugin.managers.TokBoxClient;
+import com.thestudnet.twicandroidplugin.models.GenericModel;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class VideoDetailFragment extends CustomFragment {
+public class VideoDetailFragment extends CustomFragment implements View.OnClickListener {
 
     private static final String TAG = "com.thestudnet.twicandroidplugin" + VideoDetailFragment.class.getSimpleName();
 
@@ -71,7 +76,11 @@ public class VideoDetailFragment extends CustomFragment {
             }
             // Add view
             RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
+            layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_TOP);
             mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
+            mCurrentPublisherView.setOnClickListener(this);
+//            mPublisherViewContainer.setVisibility(View.VISIBLE);
             mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
         }
         if(TokBoxClient.getInstance().getSubscribers() != null && TokBoxClient.getInstance().getSubscribers().size() > 0) {
@@ -115,19 +124,21 @@ public class VideoDetailFragment extends CustomFragment {
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_ADDED) {
             Log.d(TAG, "ON_PUBLISHER_ADDED");
-            if(TokBoxClient.getInstance().getPublisher() != null) {
-                // Remove parent views
-                ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
-                if(publisherParent != null) {
-                    publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
-                }
-                // Add view
-                RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
-                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
-                mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
-            }
+//            if(TokBoxClient.getInstance().getPublisher() != null) {
+//                // Remove parent views
+//                ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
+//                if(publisherParent != null) {
+//                    publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
+//                }
+//                // Add view
+//                RelativeLayout.LayoutParams layoutParamsPublisher = new RelativeLayout.LayoutParams((int) getResources().getDimension(R.dimen.publisherview_width), (int) getResources().getDimension(R.dimen.publisherview_height));
+//                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+//                layoutParamsPublisher.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//                mCurrentPublisherView = TokBoxClient.getInstance().getPublisher().getView();
+//                mPublisherViewContainer.addView(mCurrentPublisherView, layoutParamsPublisher);
+//            }
+            FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+            ft.detach(this).attach(this).commit();
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_SUBSCRIBER_REMOVED) {
             Log.d(TAG, "ON_SUBSCRIBER_REMOVED");
@@ -135,7 +146,19 @@ public class VideoDetailFragment extends CustomFragment {
         }
         else if(event.getType() == TokBoxInteraction.Type.ON_PUBLISHER_REMOVED) {
             Log.d(TAG, "ON_PUBLISHER_REMOVED");
+
+//            if(TokBoxClient.getInstance().getPublisher() != null) {
+//                // Remove parent views
+//                ViewGroup publisherParent = (ViewGroup) TokBoxClient.getInstance().getPublisher().getView().getParent();
+//                if(publisherParent != null) {
+//                    publisherParent.removeView(TokBoxClient.getInstance().getPublisher().getView());
+//                }
+//            }
+
             if(mCurrentPublisherView != null) {
+                mCurrentPublisherView.setOnClickListener(null);
+                mPublisherViewContainer.removeAllViews();
+//                mPublisherViewContainer.setVisibility(View.INVISIBLE);
 //                ViewGroup publisherParent = (ViewGroup) mCurrentPublisherView.getParent();
 //                if(publisherParent != null) {
 //                    publisherParent.removeView(mCurrentPublisherView);
@@ -149,6 +172,12 @@ public class VideoDetailFragment extends CustomFragment {
         layoutParams.setMargins(0, getResources().getDimensionPixelSize(R.dimen.publisherview_width), 0, 0);
         layoutParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
         this.getActivity().findViewById(R.id.user_demand).setLayoutParams(layoutParams);
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        FragmentInteraction.getInstance().FireEvent(FragmentInteraction.Type.ON_SHOW_USER_DIALOG, null);
     }
 
     @Override
