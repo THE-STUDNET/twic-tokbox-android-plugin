@@ -59,13 +59,13 @@ public class FirebaseClient {
 
     public void signIn(){
         firebaseAuth.signInWithCustomToken( token )
-            .addOnCompleteListener((Executor) this, new OnCompleteListener<AuthResult>() {
+            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d(TAG, "signInWithCustomToken:success");
-                        updateDatabase();
+                        FirebaseClient.getInstance().updateDatabase();
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInWithCustomToken:failure", task.getException());
