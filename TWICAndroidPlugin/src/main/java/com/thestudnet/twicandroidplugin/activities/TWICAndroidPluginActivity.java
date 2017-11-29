@@ -149,7 +149,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             FirebaseClient.getInstance().register();
             this.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, VideoGridFragment.newInstance())
-                    .commit();
+                    .commitAllowingStateLoss();
         } else {
             EasyPermissions.requestPermissions(this, getString(R.string.rationale_video_app), RC_VIDEO_APP_PERM, perms);
         }

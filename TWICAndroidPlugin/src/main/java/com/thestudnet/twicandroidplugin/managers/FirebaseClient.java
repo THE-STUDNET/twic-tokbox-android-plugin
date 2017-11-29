@@ -28,6 +28,7 @@ public class FirebaseClient {
     private FirebaseDatabase firebaseDatabase;
     private FirebaseAuth firebaseAuth;
     private String token;
+    private String hangoutConnectedKey;
 
     public FirebaseClient() {}
 
@@ -51,8 +52,10 @@ public class FirebaseClient {
 
     public void register(){
         if( FirebaseAuth.getInstance().getCurrentUser() == null ){
+            Log.d(TAG, "Not logged => signin");
             signIn();
         }else{
+            Log.d(TAG, "Already logged => updateDatabase");
             updateDatabase();
         }
     }
@@ -82,12 +85,24 @@ public class FirebaseClient {
         DatabaseReference user_hgt_ref = firebaseDatabase.getReference( "current_hangout/" + user_id );
         user_hgt_ref.setValue( hangout_id );
         // Add user in hangout user's list.
-        DatabaseReference hgt_ref = firebaseDatabase.getReference( "hangouts/" + hangout_id + "/connecteds" );
-        hgt_ref.push().setValue( user_id );
+        DatabaseReference hgt_ref = firebaseDatabase.getReference( "hangouts/" + hangout_id + "/connecteds" ).push();
+        hangoutConnectedKey = hgt_ref.getKey();
+        Log.d(TAG, "hangoutConnectedsKey: "+hangoutConnectedKey);
+        hgt_ref.setValue( user_id );
     }
 
     public void unregisterFirebaseClient() {
         Log.d(TAG, "signOut");
+        String user_id = SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_USERIDKEY);
+        String hangout_id = SettingsManager.getInstance().getRawValueForKey(SettingsManager.SETTINGS_HANGOUTIDKEY);
+        // Remove hangout from user current hangout
+        firebaseDatabase.getReference("current_hangout/" + user_id).removeValue();
+        // Remove user from hangout connected users.
+        Log.d(TAG, "GettingConnectedsKey: "+hangoutConnectedKey);
+        if( hangoutConnectedKey != null ){
+            firebaseDatabase.getReference("hangouts/" + hangout_id + "/connecteds").child(hangoutConnectedKey).removeValue();
+        }
+        // Sign out.
         FirebaseAuth.getInstance().signOut();
     }
 
