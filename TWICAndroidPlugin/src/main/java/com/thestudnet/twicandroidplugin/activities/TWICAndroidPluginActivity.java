@@ -38,6 +38,7 @@ import com.thestudnet.twicandroidplugin.fragments.UsersFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoDetailFragment;
 import com.thestudnet.twicandroidplugin.fragments.VideoGridFragment;
 import com.thestudnet.twicandroidplugin.managers.APIClient;
+import com.thestudnet.twicandroidplugin.managers.FirebaseClient;
 import com.thestudnet.twicandroidplugin.managers.HangoutManager;
 import com.thestudnet.twicandroidplugin.managers.MessagesManager;
 import com.thestudnet.twicandroidplugin.managers.SettingsManager;
@@ -145,6 +146,7 @@ public class TWICAndroidPluginActivity extends AppCompatActivity implements Frag
             MessagesManager.getInstance().registerMessageManager();
             TokBoxClient.getInstance().connectSession();
             SocketIoClient.getInstance().registerIoSocket();
+            FirebaseClient.getInstance().register();
             this.getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, VideoGridFragment.newInstance())
                     .commit();

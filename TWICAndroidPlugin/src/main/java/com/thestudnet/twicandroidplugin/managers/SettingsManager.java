@@ -33,6 +33,7 @@ public class SettingsManager extends JsonManager {
     public static String SETTINGS_URLKEY                 = "url";
     public static String SETTINGS_PORTKEY                = "port";
     public static String SETTINGS_SECUREKEY              = "secure";
+    public static String SETTINGS_TOKENKEY               = "token";
 
     private static SettingsManager instance;
     public SettingsManager() {

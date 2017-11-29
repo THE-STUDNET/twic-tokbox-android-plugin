@@ -85,7 +85,7 @@ public class TWICAndroidPlugin {
     public void onDestroy() {
         SocketIoClient.getInstance().unregisterIoSocket();
         MessagesManager.getInstance().unregisterMessageManager();
-//        FirebaseClient.getInstance().unregisterFirebaseClient();
+        FirebaseClient.getInstance().unregisterFirebaseClient();
     }
 
 }
